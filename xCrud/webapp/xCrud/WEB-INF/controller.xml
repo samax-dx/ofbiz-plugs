@@ -38,6 +38,14 @@ under the License.
         <event name="test" type="java" path="org.apache.ofbiz.webapp.event.TestEvent" invoke="test"/>
     </postprocessor>
     -->
+    
+    <!--handler name="xmlrpc" type="request" class="org.ofbiz.webapp.event.XmlRpcEventHandler"/>
+    
+    <request-map uri="xmlrpc" track-serverhit="false" track-visit="false">
+        <event type="xmlrpc"/>
+        <response name="error" type="none"/>
+        <response name="success" type="none"/>
+    </request-map-->
 
     <!-- Request Mappings -->
     <request-map uri="main"><security https="true" auth="true"/><response name="success" type="view" value="main"/></request-map>

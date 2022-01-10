@@ -29,6 +29,7 @@ under the License.
             <widgets>
                 <decorator-screen name="XCrudCommonDecorator" location="${parameters.mainDecoratorLocation}">
                     <decorator-section name="body">
+                        <include-form name="ListXCrud" location="component://xCrud/widget/XCrudForms.xml"/>
                     </decorator-section>
                 </decorator-screen>
             </widgets>

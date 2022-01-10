@@ -28,11 +28,108 @@ under the License.
     <copyright></copyright>
     <version></version>
 
-    <entity entity-name="xpair" package-name="org.apache.ofbiz.xcrud" title="OfbizDemo KV-List">
+    <entity entity-name="xpair" package-name="org.apache.ofbiz.xcrud" title="XCrud Pair">
         <field name="xpairId" type="id"><description>primary sequenced ID</description></field>
         <field name="itemKey" type="name"></field>
         <field name="itemValue" type="name"></field>
+        <field name="xpairTypeId" type="id"></field>
+        <field name="xpairOwnerId" type="id"></field>
         <prim-key field="xpairId"/>
+        <relation type="one" fk-name="CONTENT_TO_TYPE" rel-entity-name="xpairType">
+            <key-map field-name="xpairTypeId"/>
+        </relation>
+        <relation type="one" fk-name="XPAIR_TO_OWNER" rel-entity-name="xpairUser">
+            <key-map field-name="xpairOwnerId" rel-field-name="xpairUserId"/>
+        </relation>
+    </entity>
+
+    <entity entity-name="xpairType" package-name="org.apache.ofbiz.xcrud" title="XCrud Pair Type">
+        <field name="xpairTypeId" type="id"><description>primary sequenced ID</description></field>
+        <field name="typeName" type="name"></field>
+        <field name="xpairTypeClassId" type="id"></field>
+        <prim-key field="xpairTypeId"/>
+        <relation type="one" fk-name="PAIRTYPE_TO_TYPECLASS" rel-entity-name="xpairTypeClass">
+            <key-map field-name="xpairTypeClassId" rel-field-name="xtcId"/>
+        </relation>
+    </entity>
+
+    <entity entity-name="xpairTypeClass" package-name="org.apache.ofbiz.xcrud" title="XCrud Pair Type-Class">
+        <field name="xtcId" type="id"><description>primary sequenced ID</description></field>
+        <field name="className" type="name"></field>
+        <prim-key field="xtcId"/>
+    </entity>
+
+    <entity entity-name="xpairUser" package-name="org.apache.ofbiz.xcrud" title="XCrud Pair User">
+        <field name="xpairUserId" type="id"><description>primary sequenced ID</description></field>
+        <field name="userName" type="name"></field>
+        <prim-key field="xpairUserId"/>
+    </entity>
+
+    <view-entity entity-name="XPairAndFullTypeView"
+            package-name="org.apache.ofbiz.xcrud"
+            title="xpair, xpairType, And xpairTypeClass View">
+        <member-entity entity-alias="xp" entity-name="xpair"/>
+        <member-entity entity-alias="xt" entity-name="xpairType"/>
+        <member-entity entity-alias="xc" entity-name="xpairTypeClass"/>
+        <member-entity entity-alias="xu" entity-name="xpairUser"/>
+        <alias entity-alias="xp" name="xpairId"/>
+        <alias entity-alias="xt" name="xpairTypeId"/>
+        <alias entity-alias="xc" name="xpairTypeClassId" field="xtcId"/>
+        <alias entity-alias="xu" name="xpairUserId"/>
+        <alias entity-alias="xp" name="itemKey"/>
+        <alias entity-alias="xp" name="itemValue"/>
+        <alias entity-alias="xt" name="typeName"/>
+        <alias entity-alias="xc" name="typeClassName" field="className"/>
+        <alias entity-alias="xu" name="ownerName" field="userName"/>
+        <view-link entity-alias="xp" rel-entity-alias="xt" rel-optional="true">
+            <key-map field-name="xpairTypeId"/>
+        </view-link>
+        <view-link entity-alias="xt" rel-entity-alias="xc" rel-optional="true">
+            <key-map field-name="xpairTypeClassId" rel-field-name="xtcId"/>
+        </view-link>
+        <view-link entity-alias="xp" rel-entity-alias="xu" rel-optional="true">
+            <key-map field-name="xpairOwnerId" rel-field-name="xpairUserId"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="XPairAndTypeView"
+            package-name="org.apache.ofbiz.xcrud"
+            title="xpair And xpairType View">
+        <member-entity entity-alias="xp" entity-name="xpair"/>
+        <member-entity entity-alias="xt" entity-name="xpairType"/>
+        <alias entity-alias="xp" name="xpairId"/>
+        <alias entity-alias="xt" name="xpairTypeId"/>
+        <alias entity-alias="xp" name="itemKey"/>
+        <alias entity-alias="xp" name="itemValue"/>
+        <alias entity-alias="xt" name="typeName" field="typeName"/>
+        <view-link entity-alias="xp" rel-entity-alias="xt">
+            <key-map field-name="xpairTypeId"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="XPairTypeAndXPairView"
+            package-name="org.apache.ofbiz.xcrud"
+            title="xpairType And xpair View">
+        <member-entity entity-alias="xt" entity-name="xpairType"/>
+        <member-entity entity-alias="xp" entity-name="xpair"/>
+        <alias entity-alias="xt" name="xpairTypeId"/>
+        <alias entity-alias="xp" name="xpairId"/>
+        <alias entity-alias="xt" name="typeName"/>
+        <alias entity-alias="xp" name="itemKey"/>
+        <alias entity-alias="xp" name="itemValue"/>
+        <view-link entity-alias="xp" rel-entity-alias="xt">
+            <key-map field-name="xpairTypeId"/>
+        </view-link>
+    </view-entity>
+
+    <entity entity-name="xepair" package-name="org.apache.ofbiz.xcrud" title="XCrud Pair Extension">
+        <field name="xepairId" type="id"><description>primary sequenced ID</description></field>
+        <field name="xpairId" type="id"></field>
+        <field name="itemOptionalValue" type="name"></field>
+        <prim-key field="xepairId"/>
+        <relation type="one" fk-name="XPAPIR_XEPAIR_ID" rel-entity-name="xpair">
+            <key-map field-name="xpairId"/>
+        </relation>
     </entity>
 
 </entitymodel>

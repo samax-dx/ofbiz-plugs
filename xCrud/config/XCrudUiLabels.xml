@@ -21,22 +21,14 @@ under the License.
 <resource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://ofbiz.apache.org/dtds/ofbiz-properties.xsd">
     <property key="XCrudApplication">
         <value xml:lang="en">XCrud Application</value>
-        <value xml:lang="zh">XCrud应用程�?</value>
-        <value xml:lang="zh-TW">XCrud應用程�?</value>
     </property>
     <property key="XCrudCompanyName">
         <value xml:lang="en">OFBiz: XCrud</value>
-        <value xml:lang="zh-TW">OFBiz: XCrud</value>
     </property>
     <property key="XCrudCompanySubtitle">
         <value xml:lang="en">Part of the Apache OFBiz Family of Open Source Software</value>
-        <value xml:lang="it">Un modulo della famiglia di software open source Apache OFBiz</value>
-        <value xml:lang="zh">开�?软件OFBiz的组�?部分</value>
-        <value xml:lang="zh-TW">開�?軟體OFBiz的組�?部分</value>
     </property>
     <property key="XCrudViewPermissionError">
         <value xml:lang="en">You are not allowed to view this page.</value>
-        <value xml:lang="zh">�?�?许你�?览这个页�?�。</value>
-        <value xml:lang="zh-TW">�?�?許您檢視這個�?�?�.</value>
     </property>
 </resource>
