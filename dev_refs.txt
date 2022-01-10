@@ -1,4 +1,0 @@
-custom "request/event" handler
-========================
-	see - framework/common/webcommon/WEB-INF/common-controller.xml
-	see - framework/common/webcommon/WEB-INF/handlers-controller.xml
