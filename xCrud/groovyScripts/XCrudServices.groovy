@@ -96,7 +96,7 @@ def getXPair() {
 //		System.out.print("\n\n start \n")
 //		System.out.print( from("xpair").where("xpairId", parameters.get("xpairId")).queryOne() )
 //		System.out.print("\n end \n\n")
-	
+		
 		return result
 	} catch (Exception e) {
 		return failure(e.message)
