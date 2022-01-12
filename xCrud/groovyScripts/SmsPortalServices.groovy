@@ -1,9 +1,7 @@
 import org.apache.ofbiz.service.ServiceUtil
 import org.apache.ofbiz.base.util.UtilMisc
-import xCrud.SvcGeneratorData
 
 def spCreateParty() {
-	def link = SvcGeneratorData.spd()
 	def svcOut = null
 	try {
 		def party = runService("createPartyGroup", UtilMisc.toMap(
@@ -31,9 +29,19 @@ def spCreateParty() {
 			party.partyId
 		))
 		
+		def billingAc = runService("createBillingAccountAndRole", UtilMisc.toMap(
+			"roleTypeId",
+			"BILL_TO_CUSTOMER",
+			"availableBalance",
+			"0",
+			"accountCurrencyUomId",
+			"USD",
+			"partyId",
+			party.partyId
+		))
+		
 		svcOut = success()
 		svcOut.partyId = party.partyId
-		throw new Exception("intentional")
 	} catch (Exception e) {
 		svcOut = error(e.message)
 		svcOut.partyId = null
