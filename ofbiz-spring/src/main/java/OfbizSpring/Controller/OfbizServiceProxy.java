@@ -24,8 +24,6 @@ public class OfbizServiceProxy {
             produces = {"application/json"}
     )
     public Map<String, Object> execute(@RequestBody Map<String, Object> params) throws GenericServiceException {
-        params.put("login.username", "admin");
-        params.put("login.password", "ofbiz");
         return dispatcher.runSync("xRunSync", params);
     }
 }

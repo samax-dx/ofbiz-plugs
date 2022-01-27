@@ -32,7 +32,7 @@ under the License.
 
     <service engine="groovy" name="xRunSync"
              location="component://ofbiz-spring/groovyScripts/XRunSync.groovy"
-             invoke="execute" auth="true" export="true">
+             invoke="execute" auth="false" export="true">
         <attribute name="method" mode="IN" type="String"
                    optional="false">
         </attribute>
@@ -43,6 +43,32 @@ under the License.
                    optional="true">
         </attribute>
         <attribute name="error" mode="OUT" type="Object"
+                   optional="true">
+        </attribute>
+    </service>
+
+    <service engine="groovy" name="spCreateParty"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spCreateParty" auth="true" export="true">
+        <attribute name="name" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="role.roleTypeId" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="contactMech.countryCode" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="contactMech.areaCode" mode="IN" type="String"
+                   optional="true">
+        </attribute>
+        <attribute name="contactMech.contactNumber" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="contactMech.extension" mode="IN" type="String"
+                   optional="true">
+        </attribute>
+        <attribute name="partyId" mode="OUT" type="String"
                    optional="true">
         </attribute>
     </service>
