@@ -26,6 +26,7 @@ dependencies {
     pluginLibsCompile "org.springframework:spring-jcl:${springVersion}"
     pluginLibsCompile "ch.qos.logback:logback-classic:1.2.3"
     pluginLibsCompile "org.eclipse.jetty:jetty-server:9.4.21.v20190926"
+    pluginLibsCompile "org.springframework:spring-aspects:${springVersion}"
     pluginLibsCompile "org.springframework:spring-aop:${springVersion}"
     pluginLibsCompile "org.springframework:spring-orm:${springVersion}"
 }

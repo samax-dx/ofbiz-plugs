@@ -6,7 +6,7 @@ import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.util.EntityListIterator;
 
 public class MapUtil {
-    static Map<String, Object> remapIt(Map<String, Object> data) throws GenericEntityException {
+    public static Map<String, Object> remapIt(Map<String, Object> data) throws GenericEntityException {
         if (data.get("listIt") instanceof EntityListIterator) {
             EntityListIterator i = (EntityListIterator) data.get("listIt");
             data.put("listIt", i.getCompleteList());
@@ -15,7 +15,7 @@ public class MapUtil {
     }
 
     @SuppressWarnings("unchecked")
-    static Map<String, Object> remap(Object data) {
+    public static Map<String, Object> remap(Object data) {
         //noinspection unchecked
         return (Map<String, Object>) data;
     }
