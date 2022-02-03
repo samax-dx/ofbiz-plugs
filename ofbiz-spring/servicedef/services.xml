@@ -72,5 +72,22 @@ under the License.
                    optional="true">
         </attribute>
     </service>
+
+    <service engine="groovy" name="loginWithOfbiz"
+             location="component://ofbiz-spring/groovyScripts/applications/order/LoginWithOfbiz.groovy"
+             invoke="authenticate" auth="false" export="true">
+        <attribute name="method" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="params" mode="IN" type="Object"
+                   optional="true">
+        </attribute>
+        <attribute name="result" mode="OUT" type="Object"
+                   optional="true">
+        </attribute>
+        <attribute name="error" mode="OUT" type="Object"
+                   optional="true">
+        </attribute>
+    </service>
     
 </services>

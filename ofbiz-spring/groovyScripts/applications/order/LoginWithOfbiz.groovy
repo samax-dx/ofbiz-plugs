@@ -1,21 +1,20 @@
+package applications.order
+
 import org.apache.ofbiz.service.ServiceUtil
 import static OfbizSpring.Util.MapUtil.remap
 import static OfbizSpring.Util.MapUtil.remapIt
-
-
-Map<String, Object> execute() {
+//import org.apache.ofbiz.base.util.UtilMisc
+import org.apache.ofbiz.base.util.UtilMisc;
+import java.util.HashMap
+Map<String, Object> authenticate() {
     Map<String, Object> svc_output
-
     try {
         String serviceName = parameters.get("method")
-        Map<String, Object> serviceParams = (HashMap) parameters.get("params")
+        Object params =parameters.get("params")
+        HashMap<String, Object> testMap = new HashMap<String,Object>()
 
-        serviceParams.put("login.username", "admin")
-        serviceParams.put("login.password", "ofbiz")
-        serviceParams.put("method",serviceName)
-        //serviceParams.put("params",)
-
-        Map<String, Object> result = dispatcher.runSync(serviceName, serviceParams)
+        testMap.put("testVal", UtilMisc.toMap("a","aa"))
+        Map<String, Object> result = dispatcher.runSync(serviceName, params)
 
         if (ServiceUtil.isError(result)) {
             String errorMessage = ServiceUtil.getErrorMessage(result)
