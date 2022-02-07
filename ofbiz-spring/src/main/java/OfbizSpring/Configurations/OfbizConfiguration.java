@@ -62,8 +62,8 @@ public class OfbizConfiguration implements WebMvcConfigurer {
         Map<String, Object> args = new HashMap<>();
         args.put("BaseUrl", "http://sms.brilliant.com.bd:6005/api/v2");
         args.put("UrlSuffix", "/SendSMS");
-        args.put("ClientId", "9fZqmL+O5nGvu9E+cmEPDt98bzseSF/IJ5UMa0MkLec=");
-        args.put("ApiKey", "2f6d4dd7-62df-4db1-abcf-7a99d9949509");
+        args.put("ClientId", "2f6d4dd7-62df-4db1-abcf-7a99d9949509");
+        args.put("ApiKey", "9fZqmL+O5nGvu9E+cmEPDt98bzseSF/IJ5UMa0MkLec=");
         return args;
     }
 }

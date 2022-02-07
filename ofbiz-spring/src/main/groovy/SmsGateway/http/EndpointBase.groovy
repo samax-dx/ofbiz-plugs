@@ -1,30 +1,40 @@
-package SmsGateway.http
+package SmsGateway.http;
 
-import SmsGateway.SmsTaskException
-import org.apache.ofbiz.base.util.HttpClient
-import org.apache.ofbiz.base.util.HttpClientException;
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.core.JsonProcessingException
+import SmsGateway.SmsTaskException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientException;
 
 public abstract class EndpointBase implements IEndpoint {
     @Override
     public String post(Map<String, Object> payload) throws SmsTaskException {
-        HttpClient client = new HttpClient();
-        client.setHeader("Content-Type", "application/json");
-        client.setUrl("${baseUrl()}${urlSuffix()}");
-        client.setParameters(payload);
-
         try {
-            String responseData = client.post(new ObjectMapper().writeValueAsString(payload));
-            int responseCode = client.getResponseCode();
-            if (responseCode >= 400 || responseCode <= 500) {
-                client.postStream().close();
-                throw new SmsTaskException("Error: ${responseCode}; ${client.getResponseContent()};")
+            ResponseEntity<String> response =  new RestTemplate().exchange(
+                    baseUrl() + urlSuffix(),
+                    HttpMethod.POST,
+                    new HttpEntity<String>(
+                            new ObjectMapper().writeValueAsString(payload),
+                            new HttpHeaders() {{
+                                add("Content-Type", "application/json")
+                            }}
+                    ),
+                    String.class
+            );
+
+            int status = response.getStatusCode().value();
+            if (status >= 400 && status <= 500) {
+                throw new SmsTaskException("Error: ${status}; ${response.getBody()};")
             }
-            return responseData;
+
+            return response.getBody();
         } catch (JsonProcessingException e) {
             throw new SmsTaskException("bad request arguments");
-        } catch (HttpClientException e) {
+        } catch (RestClientException e) {
             throw new SmsTaskException(e.getMessage());
         }
     }
