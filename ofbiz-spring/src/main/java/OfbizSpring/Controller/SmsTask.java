@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 @RestController
+@RequestMapping("/SmsTask")
 public class SmsTask {
     @Autowired
     private Delegator delegator;
