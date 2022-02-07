@@ -30,9 +30,9 @@ under the License.
         </description>
     </service>
 
-    <service engine="groovy" name="xRunSync"
+    <service name="xRunSync" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/XRunSync.groovy"
-             invoke="execute" auth="false" export="true">
+             invoke="execute" export="true">
         <attribute name="method" mode="IN" type="String"
                    optional="false">
         </attribute>
@@ -47,9 +47,9 @@ under the License.
         </attribute>
     </service>
 
-    <service engine="groovy" name="spCreateParty"
+    <service name="spCreateParty" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
-             invoke="spCreateParty" auth="true" export="true">
+             invoke="spCreateParty" export="true">
         <attribute name="name" mode="IN" type="String"
                    optional="false">
         </attribute>
@@ -72,5 +72,13 @@ under the License.
                    optional="true">
         </attribute>
     </service>
-    
+
+    <service name="spSendSmsBrilliant" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spSendSmsBrilliant" export="true">
+        <attribute name="config" type="Map" mode="IN" optional="false"/>
+        <attribute name="payload" type="Map" mode="IN" optional="false"/>
+        <attribute name="report" mode="OUT" type="String" optional="false"/>
+    </service>
+
 </services>

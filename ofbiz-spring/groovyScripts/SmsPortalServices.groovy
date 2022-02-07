@@ -1,4 +1,9 @@
+import SmsGateway.ISmsProvider
+import SmsGateway.SmsTaskException
+import SmsGateway.http.SmsProviderHttp
+import SmsGateway.http.EndpointBrilliant
 import org.apache.ofbiz.base.util.UtilMisc
+
 import static OfbizSpring.Util.MapUtil.remap
 
 Map<String, Object> spCreateParty() {
@@ -45,6 +50,21 @@ Map<String, Object> spCreateParty() {
 	} catch (Exception e) {
 		svcOut = remap(error(e.message))
 		svcOut.partyId = null
+	}
+	return svcOut
+}
+
+Map<String, Object> spSendSmsBrilliant() {
+	Map<String, Object> endpointConfig = remap(parameters.get("config"))
+	Map<String, Object> requestPayload = remap(parameters.get("payload"))
+	ISmsProvider smsProvider = new SmsProviderHttp(new EndpointBrilliant(endpointConfig))
+
+	Map<String, Object> svcOut = remap(success(null))
+	try {
+		svcOut.report = smsProvider.sendSms(requestPayload)
+		svcOut.report == null && (svcOut.report = "")
+	} catch (Exception e) {
+		svcOut.report = e.getMessage()
 	}
 	return svcOut
 }
