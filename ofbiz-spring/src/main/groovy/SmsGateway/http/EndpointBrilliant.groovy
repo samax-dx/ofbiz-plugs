@@ -21,12 +21,15 @@ public class EndpointBrilliant extends EndpointBase {
 
     @Override
     public String post(Map<String, Object> payload) throws SmsTaskException {
-//        Map<String, Object> brilliantPayload = Stream
-//                .concat(payloadTemplate.entrySet().stream(), payload.entrySet().stream())
-//                .collect(Collectors.toMap(Map.Entry.getKey, Map.Entry.getValue));
-
         payload.put("ClientId", config.getClientId());
         payload.put("ApiKey", config.getApiKey());
-        return super.post(payload);
+
+        String response = super.post(payload);
+
+        if (response.indexOf("\"ErrorCode\":0") >= 0) {
+            return response;
+        } else {
+            throw new SmsTaskException(response);
+        }
     }
 }

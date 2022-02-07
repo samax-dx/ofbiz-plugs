@@ -1,6 +1,5 @@
 package OfbizSpring.Controller;
 
-import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
@@ -10,8 +9,6 @@ import javax.annotation.Resource;
 
 import java.util.Map;
 import java.util.HashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 public class SmsTask {
@@ -38,6 +35,7 @@ public class SmsTask {
 //        Map<String, Object> smsSenderServiceArgs = Stream
 //                .concat(smsSenderServiceConfig.entrySet().stream(), payload.entrySet().stream())
 //                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+//        new GsonJsonParser().parseMap(request.getReader().lines().collect(Collectors.joining()))
 
         HashMap<String, Object> smsSenderServiceArgs = new HashMap<>();
         smsSenderServiceArgs.put("config", smsSenderServiceConfig);

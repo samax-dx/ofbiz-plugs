@@ -55,4 +55,3 @@ public class OfbizServiceProxy {
         return MapUtil.remap(request.getServletContext().getAttribute("OfbizSpring.user"));
     }
 }
-//new GsonJsonParser().parseMap(request.getReader().lines().collect(Collectors.joining()))
