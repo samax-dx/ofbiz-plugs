@@ -121,6 +121,14 @@ public class Order {
                     return param == null || param.length == 0 ? null : param[0];
                 }
 
+                public void setParam(String name, String value) {
+                    requestParams.put(name, new String[]{value});
+                }
+
+                public void removeParam(String name) {
+                    requestParams.remove(name);
+                }
+
                 @Override
                 public Enumeration<String> getParameterNames() {
                     return Collections.enumeration(requestParams.keySet());

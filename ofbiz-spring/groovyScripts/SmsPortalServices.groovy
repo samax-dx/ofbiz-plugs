@@ -101,12 +101,13 @@ Map<String, Object> spCreateOrder() {
 	request.getServletContext().setAttribute("delegator", delegator);
 
 	String status = null;
+	status = ShoppingCartEvents.destroyCart(request, response);
 	status = ShoppingCartEvents.initializeOrderEntry(request, response);
 	status = ShoppingCartEvents.setOrderCurrencyAgreementShipDates(request, response);
 	status = ShoppingCartEvents.addToCart(request, response);
 	status = CheckOutEvents.setQuickCheckOutOptions(request, response);
-//	status = CheckOutEvents.createOrder(request, response);
-	return status.equals("success") ? ServiceUtil.returnSuccess() : ServiceUtil.returnFailure();
+	status = CheckOutEvents.createOrder(request, response);
+	return status.equals("error") ? ServiceUtil.returnFailure() : ServiceUtil.returnSuccess();
 }
 
 Map<String, Object> spSendSmsBrilliant() {
