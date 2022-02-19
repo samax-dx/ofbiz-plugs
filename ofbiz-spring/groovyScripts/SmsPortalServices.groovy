@@ -5,6 +5,7 @@ import SmsGateway.http.EndpointBrilliant
 import org.apache.ofbiz.base.util.UtilMisc
 import org.apache.ofbiz.order.shoppingcart.CheckOutEvents
 import org.apache.ofbiz.order.shoppingcart.ShoppingCartEvents
+import org.apache.ofbiz.order.OrderManagerEvents
 import org.apache.ofbiz.service.ServiceUtil
 
 import javax.servlet.http.HttpServletRequest
@@ -107,6 +108,8 @@ Map<String, Object> spCreateOrder() {
 	status = ShoppingCartEvents.addToCart(request, response);
 	status = CheckOutEvents.setQuickCheckOutOptions(request, response);
 	status = CheckOutEvents.createOrder(request, response);
+	request.setParam("orderId", request.getSession().getAttribute("shoppingCart").getOrderId());
+	status = OrderManagerEvents.receiveOfflinePayment(request, response);
 	return status.equals("error") ? ServiceUtil.returnFailure() : ServiceUtil.returnSuccess();
 }
 
