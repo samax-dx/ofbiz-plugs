@@ -1,6 +1,7 @@
 package OfbizSpring.Controller;
 
 import OfbizSpring.Annotations.Authorize;
+import OfbizSpring.Annotations.OfbizService;
 import OfbizSpring.Util.JwtHelper;
 import OfbizSpring.Util.MapUtil;
 import org.apache.ofbiz.base.util.UtilMisc;
@@ -21,6 +22,7 @@ public class OfbizServiceProxy {
     @Autowired
     private LocalDispatcher dispatcher;
 
+    @OfbizService
     @CrossOrigin(origins = "*")
     @RequestMapping(
             value = "/runService",

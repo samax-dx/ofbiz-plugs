@@ -49,11 +49,8 @@ under the License.
 
     <service name="spCreateParty" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
-             invoke="spCreateParty" export="true">
+             invoke="spCreateParty" export="true" auth="true">
         <attribute name="name" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="role.roleTypeId" mode="IN" type="String"
                    optional="false">
         </attribute>
         <attribute name="contactMech.countryCode" mode="IN" type="String"
@@ -71,6 +68,33 @@ under the License.
         <attribute name="partyId" mode="OUT" type="String"
                    optional="true">
         </attribute>
+    </service>
+
+    <service name="spAddPartyBalance" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spAddPartyBalance" export="true" auth="true">
+        <attribute name="currency" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="companyId" mode="IN" type="String"
+                   optional="true">
+        </attribute>
+        <attribute name="partyId" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="amount" mode="IN" type="String"
+                   optional="false">
+        </attribute>
+        <attribute name="paymentId" mode="OUT" type="String"
+                   optional="true">
+        </attribute>
+    </service>
+
+    <service name="spCreateOrder" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spCreateOrder" use-transaction="true" export="true" auth="true">
+        <attribute name="request" type="javax.servlet.http.HttpServletRequest" mode="IN" optional="false"/>
+        <attribute name="response" type="javax.servlet.http.HttpServletResponse" mode="IN" optional="false"/>
     </service>
 
     <service name="spSendSmsBrilliant" engine="groovy"

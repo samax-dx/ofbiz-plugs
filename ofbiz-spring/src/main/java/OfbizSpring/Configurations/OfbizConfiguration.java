@@ -1,6 +1,7 @@
 package OfbizSpring.Configurations;
 
 import OfbizSpring.Aspects.AuthorizationAspect;
+import OfbizSpring.Aspects.OfbizServiceAspect;
 import OfbizSpring.Interceptors.AuthorizationInterceptor;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.DelegatorFactory;
@@ -40,6 +41,11 @@ public class OfbizConfiguration implements WebMvcConfigurer {
     @Bean
     public AuthorizationAspect authorizationAspect() {
         return new AuthorizationAspect();
+    }
+
+    @Bean
+    public OfbizServiceAspect ofbizServiceAspect() {
+        return new OfbizServiceAspect();
     }
 
     @Bean

@@ -8,8 +8,8 @@ Map<String, Object> execute() {
         String svc_name = parameters.get("method")
         Map<String, Object> svc_params = (HashMap) parameters.get("params")
 
-        svc_params.put("login.username", "admin");
-        svc_params.put("login.password", "ofbiz");
+        svc_params.put("login.username", "admin")
+        svc_params.put("login.password", "ofbiz")
 
         Map<String, Object> result = dispatcher.runSync(svc_name, svc_params)
 
