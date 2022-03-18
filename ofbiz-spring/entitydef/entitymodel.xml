@@ -25,7 +25,42 @@ under the License.
     <!-- ========================================================= -->
     <title>Entity of Ofbiz-spring Component</title>
     <description>None</description>
-    <copyright></copyright>
-    <version></version>
+    <copyright>SP</copyright>
+    <version>1.0.0</version>
+
+    <view-entity entity-name="PartyPortalView"
+                 package-name="org.apache.ofbiz.party"
+                 title="Party Portal View">
+        <member-entity entity-alias="pg" entity-name="PartyGroup"/>
+        <member-entity entity-alias="pr" entity-name="PartyRole"/>
+        <member-entity entity-alias="pc" entity-name="PartyContactMech"/>
+        <member-entity entity-alias="tn" entity-name="TelecomNumber"/>
+
+        <alias entity-alias="pg" name="id" field="partyId"/>
+        <alias entity-alias="pg" name="name" field="groupName"/>
+        <alias entity-alias="pr" name="role.roleTypeId" field="roleTypeId"/>
+        <alias entity-alias="tn" name="contactMech.countryCode" field="countryCode"/>
+        <alias entity-alias="tn" name="contactMech.areaCode" field="areaCode"/>
+        <alias entity-alias="tn" name="contactMech.contactNumber" field="contactNumber"/>
+        <alias entity-alias="pc" name="contactMech.extension" field="extension"/>
+
+        <view-link entity-alias="pg" rel-entity-alias="pr" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pr" field-name="roleTypeId" operator="equals" value="CUSTOMER"/>
+            </entity-condition>
+        </view-link>
+
+        <view-link entity-alias="pg" rel-entity-alias="pc" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pc" field-name="thruDate" operator="equals" value=""/>
+            </entity-condition>
+        </view-link>
+
+        <view-link entity-alias="pc" rel-entity-alias="tn" rel-optional="false">
+            <key-map field-name="contactMechId" rel-field-name="contactMechId"/>
+        </view-link>
+    </view-entity>
 
 </entitymodel>

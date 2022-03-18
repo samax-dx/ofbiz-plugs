@@ -33,61 +33,81 @@ under the License.
     <service name="xRunSync" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/XRunSync.groovy"
              invoke="execute" export="true">
-        <attribute name="method" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="params" mode="IN" type="Object"
-                   optional="true">
-        </attribute>
-        <attribute name="result" mode="OUT" type="Object"
-                   optional="true">
-        </attribute>
-        <attribute name="error" mode="OUT" type="Object"
-                   optional="true">
-        </attribute>
+        <attribute name="method" type="String" mode="IN" optional="false" />
+        <attribute name="params" type="Object" mode="IN" optional="true" />
+        <attribute name="result" type="Object" mode="OUT" optional="true" />
+        <attribute name="error" type="Object" mode="OUT" optional="true" />
     </service>
 
     <service name="spCreateParty" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spCreateParty" export="true" auth="true">
-        <attribute name="name" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="contactMech.countryCode" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="contactMech.areaCode" mode="IN" type="String"
-                   optional="true">
-        </attribute>
-        <attribute name="contactMech.contactNumber" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="contactMech.extension" mode="IN" type="String"
-                   optional="true">
-        </attribute>
-        <attribute name="partyId" mode="OUT" type="String"
-                   optional="true">
-        </attribute>
+        <attribute name="name" type="String" mode="IN" optional="false" />
+        <attribute name="contactMech.countryCode" type="String" mode="IN" optional="false" />
+        <attribute name="contactMech.areaCode" type="String" mode="IN" optional="true" />
+        <attribute name="contactMech.contactNumber" type="String" mode="IN" optional="false" />
+        <attribute name="contactMech.extension" type="String" mode="IN" optional="true" />
+        <attribute name="partyId" type="String" mode="OUT" optional="true" />
     </service>
 
     <service name="spAddPartyBalance" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spAddPartyBalance" export="true" auth="true">
-        <attribute name="currency" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="companyId" mode="IN" type="String"
-                   optional="true">
-        </attribute>
-        <attribute name="partyId" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="amount" mode="IN" type="String"
-                   optional="false">
-        </attribute>
-        <attribute name="paymentId" mode="OUT" type="String"
-                   optional="true">
-        </attribute>
+        <attribute name="currency" type="String" mode="IN" optional="false" />
+        <attribute name="companyId" type="String" mode="IN" optional="true" />
+        <attribute name="partyId" type="String" mode="IN" optional="false" />
+        <attribute name="amount" type="String" mode="IN" optional="false" />
+        <attribute name="paymentId" type="String" mode="OUT" optional="true" />
+    </service>
+
+    <service name="spAddPartyBalanceRequest" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spAddPartyBalanceRequest" export="true" auth="true">
+        <attribute name="currency" type="String" mode="IN" optional="false" />
+        <attribute name="companyId" type="String" mode="IN" optional="true" />
+        <attribute name="partyId" type="String" mode="IN" optional="false" />
+        <attribute name="amount" type="String" mode="IN" optional="false" />
+        <attribute name="paymentId" type="String" mode="OUT" optional="true" />
+    </service>
+
+    <service name="spAddPartyBalanceConfirm" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spAddPartyBalanceConfirm" export="true" auth="true">
+        <attribute name="paymentId" type="String" mode="INOUT" optional="true" />
+    </service>
+
+    <service name="spAddPartyBalanceCancel" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spAddPartyBalanceCancel" export="true" auth="true">
+        <attribute name="paymentId" type="String" mode="INOUT" optional="true" />
+    </service>
+
+    <service name="spGetProductBillingAccount" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spGetProductBillingAccount" export="true" auth="true">
+        <attribute name="partyId" type="String" mode="IN" optional="false"/>
+        <attribute name="productId" type="String" mode="IN" optional="false"/>
+        <attribute name="value" type="GenericValue" mode="OUT" />
+    </service>
+
+    <service name="spAddPartyProductBalance" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spAddPartyProductBalance" export="true" auth="true">
+        <attribute name="companyId" type="String" mode="IN" optional="true" />
+        <attribute name="partyId" type="String" mode="INOUT" optional="false" />
+        <attribute name="productId" type="String" mode="INOUT" optional="false" />
+        <attribute name="soldQuantity" type="String" mode="IN" optional="false" />
+        <attribute name="amount" type="String" mode="OUT" optional="false" />
+    </service>
+
+    <service name="spAddPartyProductBalanceForOrder" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spAddPartyProductBalanceForOrder" export="true" auth="true">
+        <attribute name="companyId" type="String" mode="IN" optional="true" />
+        <attribute name="partyId" type="String" mode="INOUT" optional="false" />
+        <attribute name="productId" type="String" mode="INOUT" optional="false" />
+        <attribute name="orderId" type="String" mode="IN" optional="false" />
+        <attribute name="amount" type="String" mode="OUT" optional="false" />
     </service>
 
     <service name="spCreateOrder" engine="groovy"
@@ -95,13 +115,39 @@ under the License.
              invoke="spCreateOrder" use-transaction="true" export="true" auth="true">
         <attribute name="request" type="javax.servlet.http.HttpServletRequest" mode="IN" optional="false"/>
         <attribute name="response" type="javax.servlet.http.HttpServletResponse" mode="IN" optional="false"/>
+        <attribute name="orderId" type="String" mode="OUT" />
+        <attribute name="totalPrice" type="String" mode="OUT" />
+    </service>
+
+    <service name="spCreateSmsPackageOrder" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spCreateSmsPackageOrder" use-transaction="true" export="true" auth="true">
+        <attribute name="request" type="javax.servlet.http.HttpServletRequest" mode="IN" optional="false"/>
+        <attribute name="response" type="javax.servlet.http.HttpServletResponse" mode="IN" optional="false"/>
+        <attribute name="partyId" type="String" mode="OUT" optional="false" />
+        <attribute name="productId" type="String" mode="OUT" optional="false" />
+        <attribute name="orderId" type="String" mode="OUT" />
+        <attribute name="totalPrice" type="String" mode="OUT" />
+    </service>
+
+    <service name="spCreateSmsUnitOrder" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spCreateSmsUnitOrder" use-transaction="true" export="true" auth="true">
+        <attribute name="request" type="javax.servlet.http.HttpServletRequest" mode="IN" optional="false"/>
+        <attribute name="response" type="javax.servlet.http.HttpServletResponse" mode="IN" optional="false"/>
+        <attribute name="partyId" type="String" mode="OUT" optional="false" />
+        <attribute name="productId" type="String" mode="OUT" optional="false" />
+        <attribute name="orderId" type="String" mode="OUT" />
+        <attribute name="totalPrice" type="String" mode="OUT" />
     </service>
 
     <service name="spSendSmsBrilliant" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spSendSmsBrilliant" export="true">
-        <attribute name="config" type="Map" mode="IN" optional="false"/>
-        <attribute name="payload" type="Map" mode="IN" optional="false"/>
+        <attribute name="SmsConsumerPartyId" type="String" mode="IN" optional="false" />
+        <attribute name="SmsGatewayConfig" type="Map" mode="IN" optional="false"/>
+        <attribute name="request" type="javax.servlet.http.HttpServletRequest" mode="IN" optional="false"/>
+        <attribute name="response" type="javax.servlet.http.HttpServletResponse" mode="IN" optional="false"/>
         <attribute name="report" mode="OUT" type="String" optional="false"/>
     </service>
 

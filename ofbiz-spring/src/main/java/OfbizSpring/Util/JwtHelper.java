@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JwtHelper {
-    private final String secret = "Some#8#Secret";
+        private final String secret = "Some#8#Secret";
 
     public Map<String, String> getTokenUser(String token) {
         try {

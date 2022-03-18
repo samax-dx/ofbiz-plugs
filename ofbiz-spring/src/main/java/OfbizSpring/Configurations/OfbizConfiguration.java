@@ -63,8 +63,8 @@ public class OfbizConfiguration implements WebMvcConfigurer {
         return "spSendSmsBrilliant";
     }
 
-    @Bean("SmsSenderServiceConfig")
-    public Map<String, Object> smsSenderServiceArgs() {
+    @Bean("SmsGatewayConfig")
+    public Map<String, Object> smsGatewayConfig() {
         Map<String, Object> args = new HashMap<>();
         args.put("BaseUrl", "http://sms.brilliant.com.bd:6005/api/v2");
         args.put("UrlSuffix", "/SendSMS");

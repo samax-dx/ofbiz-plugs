@@ -3,10 +3,10 @@ package SmsGateway.http
 import SmsGateway.SmsTaskException
 
 public class EndpointBrilliant extends EndpointBase {
-    private final EndpointBrilliantConfig config;
+    private final BasicConfigBrilliant config;
 
     public EndpointBrilliant(Map<String, Object> config) {
-        this.config = new EndpointBrilliantConfig(config);
+        this.config = new BasicConfigBrilliant(config);
     }
 
     @Override

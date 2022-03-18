@@ -29,4 +29,40 @@ public class Accounting {
     public Map<String, Object> addPartyBalance(@RequestBody Map<String, Object> payload) throws GenericServiceException {
         return dispatcher.runSync("spAddPartyBalance",  payload);
     }
+
+    @OfbizService
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/addPartyBalanceRequest",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Map<String, Object> addPartyBalanceRequest(@RequestBody Map<String, Object> payload) throws GenericServiceException {
+        return dispatcher.runSync("spAddPartyBalanceRequest",  payload);
+    }
+
+    @OfbizService
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/addPartyBalanceConfirm",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Map<String, Object> addPartyBalanceConfirm(@RequestBody Map<String, Object> payload) throws GenericServiceException {
+        return dispatcher.runSync("spAddPartyBalanceConfirm",  payload);
+    }
+
+    @OfbizService
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/addPartyBalanceCancel",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Map<String, Object> addPartyBalanceCancel(@RequestBody Map<String, Object> payload) throws GenericServiceException {
+        return dispatcher.runSync("spAddPartyBalanceCancel",  payload);
+    }
 }
