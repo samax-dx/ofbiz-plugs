@@ -1,5 +1,10 @@
 package OfbizSpring.Annotations;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(RetentionPolicy.RUNTIME)
 public @interface Authorize {
-    String[] role() default {};
+    String[] roles() default {};
+    String[] groups() default {};
 }

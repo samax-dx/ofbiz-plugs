@@ -2,9 +2,9 @@ package OfbizSpring.Util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericValue;
-import org.apache.ofbiz.security.Security;
 import org.apache.ofbiz.security.SecurityConfigurationException;
 import org.apache.ofbiz.security.SecurityFactory;
 import org.apache.ofbiz.service.LocalDispatcher;
@@ -35,7 +35,7 @@ public class HttpUtil {
                         .readValue(super.getReader().lines().collect(Collectors.joining()), JsonNode.class);
 
                 requestBody = formToUrl(payload).getBytes(StandardCharsets.UTF_8);
-                requestParams = MapUtil.remap(new ObjectMapper().convertValue(payload, Map.class))
+                requestParams = UtilMisc.<String, Object>toMap(new ObjectMapper().convertValue(payload, Map.class))
                         .entrySet()
                         .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> {

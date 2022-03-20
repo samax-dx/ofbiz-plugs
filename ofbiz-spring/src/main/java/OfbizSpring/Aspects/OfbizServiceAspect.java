@@ -1,6 +1,8 @@
 package OfbizSpring.Aspects;
 
 import OfbizSpring.Util.MapUtil;
+import org.apache.ofbiz.entity.Delegator;
+import org.apache.ofbiz.service.LocalDispatcher;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,6 +14,14 @@ import java.util.Map;
 
 @Aspect
 public class OfbizServiceAspect {
+    private final Delegator delegator;
+    private final LocalDispatcher dispatcher;
+
+    public OfbizServiceAspect(Delegator delegator, LocalDispatcher dispatcher) {
+        this.delegator = delegator;
+        this.dispatcher = dispatcher;
+    }
+
     @Around("@annotation(OfbizSpring.Annotations.OfbizService)")
     public Object ofbizService(ProceedingJoinPoint joinPoint) throws Throwable {
         try {

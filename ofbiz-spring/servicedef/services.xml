@@ -43,6 +43,8 @@ under the License.
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spCreateParty" export="true" auth="true">
         <attribute name="name" type="String" mode="IN" optional="false" />
+        <attribute name="username" type="String" mode="IN" optional="false" />
+        <attribute name="password" type="String" mode="IN" optional="false" />
         <attribute name="contactMech.countryCode" type="String" mode="IN" optional="false" />
         <attribute name="contactMech.areaCode" type="String" mode="IN" optional="true" />
         <attribute name="contactMech.contactNumber" type="String" mode="IN" optional="false" />
@@ -53,8 +55,6 @@ under the License.
     <service name="spAddPartyBalance" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spAddPartyBalance" export="true" auth="true">
-        <attribute name="currency" type="String" mode="IN" optional="false" />
-        <attribute name="companyId" type="String" mode="IN" optional="true" />
         <attribute name="partyId" type="String" mode="IN" optional="false" />
         <attribute name="amount" type="String" mode="IN" optional="false" />
         <attribute name="paymentId" type="String" mode="OUT" optional="true" />
@@ -63,8 +63,6 @@ under the License.
     <service name="spAddPartyBalanceRequest" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spAddPartyBalanceRequest" export="true" auth="true">
-        <attribute name="currency" type="String" mode="IN" optional="false" />
-        <attribute name="companyId" type="String" mode="IN" optional="true" />
         <attribute name="partyId" type="String" mode="IN" optional="false" />
         <attribute name="amount" type="String" mode="IN" optional="false" />
         <attribute name="paymentId" type="String" mode="OUT" optional="true" />
@@ -82,18 +80,9 @@ under the License.
         <attribute name="paymentId" type="String" mode="INOUT" optional="true" />
     </service>
 
-    <service name="spGetProductBillingAccount" engine="groovy"
-             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
-             invoke="spGetProductBillingAccount" export="true" auth="true">
-        <attribute name="partyId" type="String" mode="IN" optional="false"/>
-        <attribute name="productId" type="String" mode="IN" optional="false"/>
-        <attribute name="value" type="GenericValue" mode="OUT" />
-    </service>
-
     <service name="spAddPartyProductBalance" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spAddPartyProductBalance" export="true" auth="true">
-        <attribute name="companyId" type="String" mode="IN" optional="true" />
         <attribute name="partyId" type="String" mode="INOUT" optional="false" />
         <attribute name="productId" type="String" mode="INOUT" optional="false" />
         <attribute name="soldQuantity" type="String" mode="IN" optional="false" />
@@ -103,7 +92,6 @@ under the License.
     <service name="spAddPartyProductBalanceForOrder" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spAddPartyProductBalanceForOrder" export="true" auth="true">
-        <attribute name="companyId" type="String" mode="IN" optional="true" />
         <attribute name="partyId" type="String" mode="INOUT" optional="false" />
         <attribute name="productId" type="String" mode="INOUT" optional="false" />
         <attribute name="orderId" type="String" mode="IN" optional="false" />

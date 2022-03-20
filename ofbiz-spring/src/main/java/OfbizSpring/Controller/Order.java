@@ -1,6 +1,8 @@
 package OfbizSpring.Controller;
 
+import OfbizSpring.Annotations.Authorize;
 import OfbizSpring.Util.HttpUtil;
+import OfbizSpring.Util.ServiceContextUtil;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.service.LocalDispatcher;
@@ -72,6 +74,7 @@ public class Order {
         }
     }
 
+    @Authorize
     @CrossOrigin(origins = "*")
     @RequestMapping(
             value = "/purchaseSmsPackage",
@@ -81,20 +84,22 @@ public class Order {
     )
     public Object purchaseSmsPackage(HttpServletRequest request, HttpServletResponse response) {
         try {
-            Map<String, Object> packageOrder = dispatcher.runSync("spCreateSmsPackageOrder", UtilMisc.toMap(
-                    "request", request,
-                    "response", response,
-                    "login.username", "admin",
-                    "login.password", "ofbiz"
-            ));
+            Map<String, Object> packageOrder = dispatcher.runSync(
+                    "spCreateSmsPackageOrder",
+                    ServiceContextUtil.authorizeContext(UtilMisc.toMap(
+                            "request", request,
+                            "response", response
+                    ))
+            );
 
-            Map<String, Object> creditedBalance = dispatcher.runSync("spAddPartyProductBalanceForOrder", UtilMisc.toMap(
-                    "partyId", packageOrder.get("partyId"),
-                    "productId", packageOrder.get("productId"),
-                    "orderId", packageOrder.get("orderId"),
-                    "login.username", "admin",
-                    "login.password", "ofbiz"
-            ));
+            Map<String, Object> creditedBalance = dispatcher.runSync(
+                    "spAddPartyProductBalanceForOrder",
+                    ServiceContextUtil.authorizeContext(UtilMisc.toMap(
+                            "partyId", packageOrder.get("partyId"),
+                            "productId", packageOrder.get("productId"),
+                            "orderId", packageOrder.get("orderId")
+                    ))
+            );
 
             return ServiceUtil.returnSuccess(String.format(
                     "Order ID: %s, Credited Unit: %s, Billed Amount: %s",

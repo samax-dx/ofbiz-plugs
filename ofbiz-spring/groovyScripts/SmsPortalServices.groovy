@@ -5,6 +5,7 @@ import SmsGateway.http.EndpointBrilliant
 import SmsGateway.util.SmsUtil
 import org.apache.ofbiz.accounting.payment.BillingAccountWorker
 import org.apache.ofbiz.base.util.UtilMisc
+import org.apache.ofbiz.entity.GenericEntityException
 import org.apache.ofbiz.entity.GenericValue
 import org.apache.ofbiz.entity.condition.EntityCondition
 import org.apache.ofbiz.entity.condition.EntityOperator
@@ -36,24 +37,61 @@ List<String> getPartyBillingAccountIds(String partyId) {
 GenericValue getPartyBillingAccount(String partyId) {
 	ArrayList<String> partyBillingAccounts = getPartyBillingAccountIds(partyId)
 
-	return from("BillingAccount")
-			.where(
-					EntityCondition.makeCondition("billingAccountId", EntityOperator.IN, partyBillingAccounts),
-					EntityCondition.makeCondition("externalAccountId", EntityOperator.EQUALS, "Main")
-			)
-			.queryFirst()
+	try {
+		return from("BillingAccount")
+				.where(
+						EntityCondition.makeCondition("billingAccountId", EntityOperator.IN, partyBillingAccounts),
+						EntityCondition.makeCondition("externalAccountId", EntityOperator.EQUALS, "Main")
+				)
+				.queryFirst()
+	} catch (GenericEntityException e) {
+		return null
+	}
 }
 
 ///TODO: Decide whether to use `from BillingAccount where description like partyId-typeId` or not
 GenericValue getPartyBillingAccount(String partyId, String typeId) {
 	ArrayList<String> partyBillingAccounts = getPartyBillingAccountIds(partyId)
 
-	return from("BillingAccount")
+	try {
+		return from("BillingAccount")
+				.where(
+						EntityCondition.makeCondition("billingAccountId", EntityOperator.IN, partyBillingAccounts),
+						EntityCondition.makeCondition("description", EntityOperator.LIKE, "%${typeId}%".toString())
+				)
+				.queryFirst()
+	} catch (GenericEntityException e) {
+		return null
+	}
+}
+
+///TODO: Decide whether to use `from BillingAccount where description like partyId-typeId` or not
+GenericValue getOrCreatePartyBillingAccount(String partyId, String typeId) {
+	ArrayList<String> partyBillingAccounts = getPartyBillingAccountIds(partyId)
+
+	def account = from("BillingAccount")
 			.where(
 					EntityCondition.makeCondition("billingAccountId", EntityOperator.IN, partyBillingAccounts),
 					EntityCondition.makeCondition("description", EntityOperator.LIKE, "%${typeId}%".toString())
 			)
 			.queryFirst()
+
+	if (account == null) {
+		def accountId = runService("createBillingAccountAndRole", UtilMisc.toMap(
+				"roleTypeId", "BILL_TO_CUSTOMER",
+				"availableBalance", "0",
+				"accountLimit", 0,
+				"accountCurrencyUomId", "USD",
+				"partyId", partyId,
+				"description", "${partyId}_${typeId}".toString()
+		)).billingAccountId as String
+
+		account = from("BillingAccount")
+				.where(EntityCondition.makeCondition("billingAccountId", EntityOperator.EQUALS, accountId))
+				.queryFirst()
+	}
+
+	return account
 }
 
 Number getProductUnitPoint(String productId) {
@@ -112,7 +150,7 @@ Map<String, Object> addPartyProductBalance(parameters) {
 				"currencyUomId", "USD",
 				"isDepositWithDrawPayment", "Y",
 				"finAccountTransTypeId", "DEPOSIT",
-				"partyIdTo", parameters.get("companyId") == null ? "Company" : parameters.get("companyId"),
+				"partyIdTo", "Company",
 				"partyIdFrom", parameters.get("partyId"),
 				"paymentTypeId", "CUSTOMER_DEPOSIT",
 				"paymentMethodId", "PETTY_CASH",
@@ -126,7 +164,7 @@ Map<String, Object> addPartyProductBalance(parameters) {
 
 		Map<String, Object> paymentApplication = runService("createPaymentApplication", UtilMisc.toMap(
 				"paymentId", payment.paymentId,
-				"billingAccountId", getPartyBillingAccount(parameters.get("partyId").toString(), "Product").billingAccountId
+				"billingAccountId", getOrCreatePartyBillingAccount(parameters.get("partyId").toString(), "Product").billingAccountId
 		))
 
 		Map<String, Object> paymentConfirmStatus = runService("setPaymentStatus", UtilMisc.toMap(
@@ -159,6 +197,13 @@ Map<String, Object> spCreateParty() {
 	try {
 		Map<String, Object> party = runService("createPartyGroup", UtilMisc.toMap(
 			"groupName", parameters.get("name")
+		))
+
+		Map<String, Object> login = runService("createUserLogin", UtilMisc.toMap(
+				"partyId", party.partyId,
+				"userLoginId", parameters.get("username"),
+				"currentPassword", parameters.get("password"),
+				"currentPasswordVerify", parameters.get("password")
 		))
 
 		Map<String, Object> role = runService("createPartyRole", UtilMisc.toMap(
@@ -198,10 +243,10 @@ Map<String, Object> spAddPartyBalance() {
 	try {
 		Map<String, Object> payment = runService("createPaymentAndFinAccountTrans", UtilMisc.toMap(
 				"statusId", "PMNT_NOT_PAID",
-				"currencyUomId", parameters.get("currency"),
+				"currencyUomId", "USD",
 				"isDepositWithDrawPayment", "Y",
 				"finAccountTransTypeId", "DEPOSIT",
-				"partyIdTo", parameters.get("companyId") == null ? "Company" : parameters.get("companyId"),
+				"partyIdTo", "Company",
 				"partyIdFrom", parameters.get("partyId"),
 				"paymentTypeId", "CUSTOMER_DEPOSIT",
 				"paymentMethodId", "PETTY_CASH",
@@ -237,10 +282,10 @@ Map<String, Object> spAddPartyBalanceRequest() {
 	try {
 		Map<String, Object> payment = runService("createPaymentAndFinAccountTrans", UtilMisc.toMap(
 				"statusId", "PMNT_NOT_PAID",
-				"currencyUomId", parameters.get("currency"),
+				"currencyUomId", "USD",
 				"isDepositWithDrawPayment", "Y",
 				"finAccountTransTypeId", "DEPOSIT",
-				"partyIdTo", parameters.get("companyId") == null ? "Company" : parameters.get("companyId"),
+				"partyIdTo", "Company",
 				"partyIdFrom", parameters.get("partyId"),
 				"paymentTypeId", "CUSTOMER_DEPOSIT",
 				"paymentMethodId", "PETTY_CASH",
@@ -306,37 +351,6 @@ Map<String, Object> spAddPartyBalanceCancel() {
 	return svcOut
 }
 
-Map<String, Object> spGetProductBillingAccount() {
-	String partyId = parameters.partyId
-	String productId = parameters.productId
-	String billingAccountId = "${partyId}_${productId}"
-
-	Map<String, Object> svcOut = success() as Map<String, Object>
-
-	svcOut.value = from("BillingAccount")
-			.where(UtilMisc.toMap("description", billingAccountId))
-			.queryFirst()
-
-	if (svcOut.value) {
-		return svcOut
-	}
-
-	runService("createBillingAccountAndRole", UtilMisc.toMap(
-			"roleTypeId", "BILL_TO_CUSTOMER",
-			"availableBalance", "0",
-			"accountLimit", 0,
-			"accountCurrencyUomId", "USD",
-			"partyId", partyId,
-			"description", billingAccountId
-	))
-
-	svcOut.value = from("BillingAccount")
-			.where(UtilMisc.toMap("description", billingAccountId))
-			.queryFirst()
-
-	return svcOut
-}
-
 Map<String, Object> spAddPartyProductBalance() {
 	return addPartyProductBalance(parameters)
 }
@@ -352,9 +366,30 @@ Map<String, Object> spAddPartyProductBalanceForOrder() {
 	return balance
 }
 
+///TODO: Retrieve `productStoreId, CURRENT_CATALOG_ID, currencyUomId` from configuration
 Map<String, Object> spCreateOrder() {
 	def request = HttpUtil.toWebRequest(parameters.request, userLogin, delegator, dispatcher);
 	def response = HttpUtil.toWebResponse(parameters.response);
+
+	String partyId = request.getParameter("partyId")
+	String productId = request.getParameter("productId")
+	GenericValue billingAccount = getPartyBillingAccount(partyId)
+
+	request.setParam("productStoreId", request.getParameter("storeId"))
+	request.setParam("CURRENT_CATALOG_ID", "DemoCatalog")
+	request.setParam("add_product_id", productId)
+	request.setParam("orderName", "${productId} ${System.currentTimeMillis()}".toString())
+	request.setParam("orderMode", "SALES_ORDER")
+	request.setParam("billingAccountId", billingAccount.billingAccountId)
+	request.setParam("currencyUomId", "USD")
+	request.setParam("hasAgreements", "N")
+	request.setParam("shipping_method", "NO_SHIPPING@_NA_")
+	request.setParam("may_split", "false")
+	request.setParam("is_gift", "false")
+	request.setParam("shipToCustomerPartyId", partyId)
+	request.setParam("checkoutpage", "quick")
+	request.setParam("BACK_PAGE", "quickcheckout")
+	request.setParam("quantity", request.getParameter("quantity"))
 
 	return createOrder(request, response);
 }
@@ -364,11 +399,11 @@ Map<String, Object> spCreateSmsPackageOrder() {
 	def request = HttpUtil.toWebRequest(parameters.request, userLogin, delegator, dispatcher)
 	def response = HttpUtil.toWebResponse(parameters.response)
 
-	String partyId = request.getParameter("partyId")
+	String partyId = request.getAttribute("signedParty").get("partyId")
 	String productId = request.getParameter("productId")
-	GenericValue billingAccount = getPartyBillingAccount(partyId);
+	GenericValue billingAccount = getPartyBillingAccount(partyId)
 
-	request.setParam("productStoreId", "10003")
+	request.setParam("productStoreId", request.getParameter("storeId"))
 	request.setParam("CURRENT_CATALOG_ID", "DemoCatalog")
 	request.setParam("add_product_id", productId)
 	request.setParam("orderName", "${productId} ${System.currentTimeMillis()}".toString())
@@ -394,12 +429,12 @@ Map<String, Object> spCreateSmsPackageOrder() {
 
 ///TODO: Retrieve `productStoreId, CURRENT_CATALOG_ID, productId, currencyUomId` from configuration
 Map<String, Object> createSmsUnitOrder(request, response) {
-	String partyId = request.getParameter("partyId")
+	String partyId = request.getAttribute("signedParty").get("partyId")
 	String productId = "Product"
 	String unitProductId = "SMS_UNITPOINT_V1"
 	GenericValue billingAccount = getPartyBillingAccount(partyId, productId)
 
-	request.setParam("productStoreId", "10003")
+	request.setParam("productStoreId", request.getParameter("storeId"))
 	request.setParam("CURRENT_CATALOG_ID", "DemoCatalog")
 	request.setParam("add_product_id", unitProductId)
 	request.setParam("orderName", "${unitProductId} ${System.currentTimeMillis()}".toString())
@@ -458,6 +493,7 @@ Map<String, Object> spSendSmsBrilliant() {
 		request.clearParams()
 		request.setParams(UtilMisc.toMap(
 				"partyId", smsConsumerPartyId,
+				"storeId", requestPayload.get("storeId"),
 				"quantity", new ObjectMapper().readValue(svcOut.report, Map.class).getAt("Data").size().toString()
 		))
 

@@ -39,16 +39,6 @@ public class OfbizConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    public AuthorizationAspect authorizationAspect() {
-        return new AuthorizationAspect();
-    }
-
-    @Bean
-    public OfbizServiceAspect ofbizServiceAspect() {
-        return new OfbizServiceAspect();
-    }
-
-    @Bean
     public Delegator delegator() {
         return DelegatorFactory.getDelegator("default");
     }
@@ -56,6 +46,16 @@ public class OfbizConfiguration implements WebMvcConfigurer {
     @Bean
     public LocalDispatcher dispatcher() {
         return ServiceContainer.getLocalDispatcher("spring", delegator());
+    }
+
+    @Bean
+    public AuthorizationAspect authorizationAspect() {
+        return new AuthorizationAspect(delegator(), dispatcher());
+    }
+
+    @Bean
+    public OfbizServiceAspect ofbizServiceAspect() {
+        return new OfbizServiceAspect(delegator(), dispatcher());
     }
 
     @Bean("SmsSenderServiceName")

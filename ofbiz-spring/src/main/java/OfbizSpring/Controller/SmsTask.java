@@ -1,5 +1,7 @@
 package OfbizSpring.Controller;
 
+import OfbizSpring.Annotations.Authorize;
+import OfbizSpring.Util.ServiceContextUtil;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
@@ -27,6 +29,7 @@ public class SmsTask {
     @Resource(name = "SmsGatewayConfig")
     private Map<String, Object> smsGatewayConfig;
 
+    @Authorize
     @CrossOrigin(origins = "*")
     @RequestMapping(
             value = "/sendSms",
@@ -34,7 +37,7 @@ public class SmsTask {
             consumes = {"application/json"},
             produces = {"application/json"}
     )
-    public Map<String, Object> sendSms(HttpServletRequest request, HttpServletResponse response) throws GenericServiceException {
+    public Object sendSms(HttpServletRequest request, HttpServletResponse response, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException {
 //        Map<String, Object> smsSenderServiceArgs = Stream
 //                .concat(smsSenderServiceConfig.entrySet().stream(), payload.entrySet().stream())
 //                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -43,12 +46,10 @@ public class SmsTask {
         HashMap<String, Object> smsSenderServiceArgs = new HashMap<>();
 
         smsSenderServiceArgs.put("SmsGatewayConfig", smsGatewayConfig);
-        smsSenderServiceArgs.put("SmsConsumerPartyId", "10020");
+        smsSenderServiceArgs.put("SmsConsumerPartyId", signedParty.get("partyId"));
         smsSenderServiceArgs.put("request", request);
         smsSenderServiceArgs.put("response", response);
-        smsSenderServiceArgs.put("login.username", "admin");
-        smsSenderServiceArgs.put("login.password", "ofbiz");
 
-        return dispatcher.runSync(smsSenderServiceName, smsSenderServiceArgs);
+        return dispatcher.runSync(smsSenderServiceName, ServiceContextUtil.authorizeContext(smsSenderServiceArgs));
     }
 }

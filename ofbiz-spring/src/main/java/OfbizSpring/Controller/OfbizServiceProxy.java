@@ -3,7 +3,6 @@ package OfbizSpring.Controller;
 import OfbizSpring.Annotations.Authorize;
 import OfbizSpring.Annotations.OfbizService;
 import OfbizSpring.Util.JwtHelper;
-import OfbizSpring.Util.MapUtil;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.service.LocalDispatcher;
@@ -42,7 +41,7 @@ public class OfbizServiceProxy {
             produces = {"application/json"}
     )
     public Object login(HttpServletRequest request) throws GenericServiceException {
-        return UtilMisc.toMap("token", new JwtHelper().getUserToken(UtilMisc.toMap("id", "10000")));
+        return UtilMisc.toMap("token", new JwtHelper().getUserToken(UtilMisc.toMap("partyId", "10000", "loginId", "admin")));
     }
 
     @Authorize
@@ -53,7 +52,7 @@ public class OfbizServiceProxy {
             consumes = {"application/json"},
             produces = {"application/json"}
     )
-    public Object profile(HttpServletRequest request) throws GenericServiceException {
-        return MapUtil.remap(request.getServletContext().getAttribute("OfbizSpring.user"));
+    public Object profile(HttpServletRequest request, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException {
+        return signedParty;
     }
 }
