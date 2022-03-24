@@ -3,6 +3,7 @@ package OfbizSpring.Controller;
 import OfbizSpring.Annotations.Authorize;
 import OfbizSpring.Annotations.OfbizService;
 import OfbizSpring.Util.JwtHelper;
+import OfbizSpring.Util.MapUtil;
 import OfbizSpring.Util.ServiceContextUtil;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.common.login.LoginServices;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,14 +57,14 @@ public class Party {
         boolean isAuthentic = LoginServices.checkPassword(
                 (String) dbUser.get("currentPassword"),
                 Boolean.TRUE,
-                (String) rqUser.get("password")
+                (String) rqUser.getOrDefault("password", "")
         );
 
         if (isAuthentic) {
             Map<String, String> responsePayload = new HashMap<>();
             responsePayload.put("partyId", (String) dbUser.get("partyId"));
             responsePayload.put("loginId", (String) dbUser.get("userLoginId"));
-            return new JwtHelper().getUserToken(responsePayload);
+            return UtilMisc.toMap("token", new JwtHelper().getUserToken(responsePayload));
         } else {
             return ServiceUtil.returnError("Invalid password");
         }
@@ -77,9 +79,32 @@ public class Party {
             produces = {"application/json"}
     )
     public Object createParty(@RequestBody Map<String, Object> payload) throws GenericServiceException {
-        return dispatcher.runSync("spCreateParty", ServiceContextUtil.authorizeContext(payload));
+        try {
+            Map<String, Object> result = dispatcher.runSync("spCreateParty", ServiceContextUtil.authorizeContext(payload));
+
+            if (result.get("partyId") == null) {
+                throw new Exception((String) result.getOrDefault("errorMessage", "Unknown result"));
+            } else {
+                return UtilMisc.toMap("id", result.get("partyId"));
+            }
+        } catch (Exception ex) {
+            return UtilMisc.toMap("errorMessage", ex.getMessage());
+        }
     }
 
+    @Authorize
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/findParty",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Object findParty(@RequestBody Map<String, Object> request, HttpServletResponse response, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
+        return EntityQuery.use(delegator).from("PartyPortalView").where("id", signedParty.get("partyId")).queryFirst();
+    }
+
+    @Authorize(groups = { "FULLADMIN" })
     @OfbizService
     @CrossOrigin(origins = "*")
     @RequestMapping(
@@ -88,7 +113,11 @@ public class Party {
             consumes = {"application/json"},
             produces = {"application/json"}
     )
-    public Object findParties(Map<String, Object> request, HttpServletResponse response) throws GenericServiceException {
-        return dispatcher.runSync("spFindParties", request);
+    public Object findParties(@RequestBody Map<String, Object> request, HttpServletResponse response) throws GenericServiceException, GenericEntityException {
+        Map<String, Object> result = MapUtil.remapIt(dispatcher.runSync("performFind", UtilMisc.toMap(
+                "entityName", "PartyPortalView",
+                "inputFields", request
+        )));
+        return result.get("listIt");
     }
 }

@@ -49,30 +49,26 @@ GenericValue getPartyBillingAccount(String partyId) {
 	}
 }
 
-///TODO: Decide whether to use `from BillingAccount where description like partyId-typeId` or not
-GenericValue getPartyBillingAccount(String partyId, String typeId) {
+///TODO: Decide whether to use `from BillingAccount where description like partyId-pisTag` or not
+GenericValue getPartyProductBillingAccount(String partyId, String pisTag) { // <pisTag = Product's Inventory Selection Tag> <retrievable from `product-comment` and `billing-account-description`>
 	ArrayList<String> partyBillingAccounts = getPartyBillingAccountIds(partyId)
 
-	try {
-		return from("BillingAccount")
-				.where(
-						EntityCondition.makeCondition("billingAccountId", EntityOperator.IN, partyBillingAccounts),
-						EntityCondition.makeCondition("description", EntityOperator.LIKE, "%${typeId}%".toString())
-				)
-				.queryFirst()
-	} catch (GenericEntityException e) {
-		return null
-	}
+	return from("BillingAccount")
+			.where(
+					EntityCondition.makeCondition("billingAccountId", EntityOperator.IN, partyBillingAccounts),
+					EntityCondition.makeCondition("description", EntityOperator.LIKE, "%${pisTag}%".toString())
+			)
+			.queryFirst()
 }
 
-///TODO: Decide whether to use `from BillingAccount where description like partyId-typeId` or not
-GenericValue getOrCreatePartyBillingAccount(String partyId, String typeId) {
+///TODO: Decide whether to use `from BillingAccount where description like partyId-pisTag` or not
+GenericValue getOrCreatePartyProductBillingAccount(String partyId, String pisTag) {
 	ArrayList<String> partyBillingAccounts = getPartyBillingAccountIds(partyId)
 
 	def account = from("BillingAccount")
 			.where(
 					EntityCondition.makeCondition("billingAccountId", EntityOperator.IN, partyBillingAccounts),
-					EntityCondition.makeCondition("description", EntityOperator.LIKE, "%${typeId}%".toString())
+					EntityCondition.makeCondition("description", EntityOperator.LIKE, "%${pisTag}%".toString())
 			)
 			.queryFirst()
 
@@ -83,7 +79,7 @@ GenericValue getOrCreatePartyBillingAccount(String partyId, String typeId) {
 				"accountLimit", 0,
 				"accountCurrencyUomId", "USD",
 				"partyId", partyId,
-				"description", "${partyId}_${typeId}".toString()
+				"description", "${partyId}_${pisTag}".toString()
 		)).billingAccountId as String
 
 		account = from("BillingAccount")
@@ -94,24 +90,30 @@ GenericValue getOrCreatePartyBillingAccount(String partyId, String typeId) {
 	return account
 }
 
-Number getProductUnitPoint(String productId) {
-	Map<String, Object> product = from("Product")
-			.where(UtilMisc.toMap("productId", productId))
-			.queryFirst()
+String getProductAttributeFromComment(String productId, String attrName) {
+	GenericValue product = from("Product").where("productId", parameters.productId).queryFirst()
 
 	if (product == null) {
 		return null
 	}
 
 	Matcher matcher = Pattern
-			.compile("(?<=\\[unitpoint=)\\d+(?=\\])")
-			.matcher(product.comments.toString())
+			.compile("(?<=\\[" + attrName + "=).*?(?=\\])")
+			.matcher((String) product.get("comments"))
 
 	if (matcher.find()) {
-		return NumberFormat.getInstance().parse(matcher.group(0))
+		return matcher.group(0)
 	}
 
 	return null
+}
+
+Number getProductUnitPoint(String productId) {
+	return NumberFormat.getInstance().parse(getProductAttributeFromComment(productId, "unitpoint"))
+}
+
+String getProductPisTag(String productId) {
+	return getProductAttributeFromComment(productId, "pistag")
 }
 
 Map<String, Object> createOrder(request, response, currentBalance = -1.0) {
@@ -139,11 +141,10 @@ Map<String, Object> createOrder(request, response, currentBalance = -1.0) {
 	return svcOut;
 }
 
-///TODO: Incorporate better approach to handle `getPartyBillingAccount(partyId, productId/typeId)` specific/common inventory needs;
 Map<String, Object> addPartyProductBalance(parameters) {
 	Map<String, Object> svcOut
 	try {
-		Number amount = NumberFormat.getInstance().parse(parameters.soldQuantity as String) * getProductUnitPoint(parameters.productId as String)
+		Number amount = NumberFormat.getInstance().parse(parameters.soldQuantity as String) * getProductUnitPoint((String) parameters.productId)
 
 		Map<String, Object> payment = runService("createPaymentAndFinAccountTrans", UtilMisc.toMap(
 				"statusId", "PMNT_NOT_PAID",
@@ -164,7 +165,7 @@ Map<String, Object> addPartyProductBalance(parameters) {
 
 		Map<String, Object> paymentApplication = runService("createPaymentApplication", UtilMisc.toMap(
 				"paymentId", payment.paymentId,
-				"billingAccountId", getOrCreatePartyBillingAccount(parameters.get("partyId").toString(), "Product").billingAccountId
+				"billingAccountId", getOrCreatePartyProductBillingAccount((String) parameters.partyId, getProductPisTag((String) parameters.productId)).billingAccountId
 		))
 
 		Map<String, Object> paymentConfirmStatus = runService("setPaymentStatus", UtilMisc.toMap(
@@ -185,12 +186,6 @@ Map<String, Object> addPartyProductBalance(parameters) {
 	return svcOut
 }
 
-Map<String, Object> spFindParties() {
-	Map<String, Object> output = success() as Map<String, Object>
-	output.result = from("PartyPortalView").findAll()
-	return output
-}
-
 ///TODO: Retrieve `externalAccountId` from configuration
 Map<String, Object> spCreateParty() {
 	Map<String, Object> svcOut
@@ -203,7 +198,7 @@ Map<String, Object> spCreateParty() {
 				"partyId", party.partyId,
 				"userLoginId", parameters.get("username"),
 				"currentPassword", parameters.get("password"),
-				"currentPasswordVerify", parameters.get("password")
+				"currentPasswordVerify", parameters.get("passwordConfirm")
 		))
 
 		Map<String, Object> role = runService("createPartyRole", UtilMisc.toMap(
@@ -427,17 +422,16 @@ Map<String, Object> spCreateSmsPackageOrder() {
 	return svcOut
 }
 
-///TODO: Retrieve `productStoreId, CURRENT_CATALOG_ID, productId, currencyUomId` from configuration
+///TODO: Retrieve `productStoreId, CURRENT_CATALOG_ID, currencyUomId` from configuration
 Map<String, Object> createSmsUnitOrder(request, response) {
 	String partyId = request.getAttribute("signedParty").get("partyId")
-	String productId = "Product"
-	String unitProductId = "SMS_UNITPOINT_V1"
-	GenericValue billingAccount = getPartyBillingAccount(partyId, productId)
+	String productId = "SMS_UNITPOINT_V1"
+	GenericValue billingAccount = getPartyProductBillingAccount(partyId, (String) request.getParameter("pisTag"))
 
 	request.setParam("productStoreId", request.getParameter("storeId"))
 	request.setParam("CURRENT_CATALOG_ID", "DemoCatalog")
-	request.setParam("add_product_id", unitProductId)
-	request.setParam("orderName", "${unitProductId} ${System.currentTimeMillis()}".toString())
+	request.setParam("add_product_id", productId)
+	request.setParam("orderName", "${productId} ${System.currentTimeMillis()}".toString())
 	request.setParam("orderMode", "SALES_ORDER")
 	request.setParam("billingAccountId", billingAccount.billingAccountId)
 	request.setParam("currencyUomId", "USD")
@@ -462,6 +456,8 @@ Map<String, Object> spCreateSmsUnitOrder() {
 	def request = HttpUtil.toWebRequest(parameters.request, userLogin, delegator, dispatcher)
 	def response = HttpUtil.toWebResponse(parameters.response)
 
+	request.setParam("pisTag", "domestic")
+
 	return createSmsUnitOrder(request, response)
 }
 
@@ -474,7 +470,7 @@ Map<String, Object> spSendSmsBrilliant() {
 	Map<String, Object> requestPayload = request.getParams()
 
 	int requestSmsQuantity = SmsUtil.contactCount((String) requestPayload.MobileNumbers) * SmsUtil.smsCount((String) requestPayload.Message)
-	BigDecimal partySmsBalance  = BillingAccountWorker.getBillingAccountAvailableBalance(getPartyBillingAccount(smsConsumerPartyId, "Product")) * -1
+	BigDecimal partySmsBalance  = BillingAccountWorker.getBillingAccountAvailableBalance(getPartyProductBillingAccount(smsConsumerPartyId, (String) requestPayload.get("pisTag"))) * -1
 
 	if (requestSmsQuantity > partySmsBalance) {
 		return ServiceUtil.returnFailure("Insufficient balance")
@@ -494,6 +490,7 @@ Map<String, Object> spSendSmsBrilliant() {
 		request.setParams(UtilMisc.toMap(
 				"partyId", smsConsumerPartyId,
 				"storeId", requestPayload.get("storeId"),
+				"pisTag", requestPayload.get("pisTag"),
 				"quantity", new ObjectMapper().readValue(svcOut.report, Map.class).getAt("Data").size().toString()
 		))
 

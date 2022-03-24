@@ -45,6 +45,7 @@ under the License.
         <attribute name="name" type="String" mode="IN" optional="false" />
         <attribute name="username" type="String" mode="IN" optional="false" />
         <attribute name="password" type="String" mode="IN" optional="false" />
+        <attribute name="passwordConfirm" type="String" mode="IN" optional="false" />
         <attribute name="contactMech.countryCode" type="String" mode="IN" optional="false" />
         <attribute name="contactMech.areaCode" type="String" mode="IN" optional="true" />
         <attribute name="contactMech.contactNumber" type="String" mode="IN" optional="false" />
