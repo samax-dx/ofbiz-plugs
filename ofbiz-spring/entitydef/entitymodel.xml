@@ -20,6 +20,7 @@ under the License.
 
 <entitymodel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://ofbiz.apache.org/dtds/entitymodel.xsd">
+
     <!-- ========================================================= -->
     <!-- ======================== Defaults ======================= -->
     <!-- ========================================================= -->
@@ -28,35 +29,41 @@ under the License.
     <copyright>SP</copyright>
     <version>1.0.0</version>
 
-    <view-entity entity-name="PartyPortalView"
+    <entity title="Telecom Dial Number"
+            package-name="org.apache.ofbiz.party.contact"
+            entity-name="TelecomDialNumber">
+        <field name="contactId" type="id"/>
+        <field name="dialNumber" type="long-varchar"/>
+        <prim-key field="contactId"/>
+        <relation type="one" rel-entity-name="ContactMech">
+            <key-map field-name="contactId" rel-field-name="contactMechId" />
+        </relation>
+    </entity>
+
+    <view-entity entity-name="PartyProfileView"
                  package-name="org.apache.ofbiz.party"
                  title="Party Portal View">
         <member-entity entity-alias="pg" entity-name="PartyGroup"/>
         <member-entity entity-alias="ul" entity-name="UserLogin"/>
-        <member-entity entity-alias="pr" entity-name="PartyRole"/>
-        <member-entity entity-alias="pc" entity-name="PartyContactMech"/>
+        <member-entity entity-alias="td" entity-name="TelecomDialNumber"/>
         <member-entity entity-alias="tn" entity-name="TelecomNumber"/>
+        <member-entity entity-alias="pc" entity-name="PartyContactMech"/>
+        <member-entity entity-alias="pr" entity-name="PartyRole"/>
+        <member-entity entity-alias="pa" entity-name="PartyAttribute"/>
 
-        <alias entity-alias="pg" name="id" field="partyId"/>
+        <alias entity-alias="pg" name="partyId" field="partyId"/>
         <alias entity-alias="pg" name="name" field="groupName"/>
         <alias entity-alias="ul" name="username" field="userLoginId"/>
-        <alias entity-alias="pr" name="role.roleTypeId" field="roleTypeId"/>
+        <alias entity-alias="td" name="contactNumber" field="dialNumber"/>
         <alias entity-alias="tn" name="contactMech.countryCode" field="countryCode"/>
         <alias entity-alias="tn" name="contactMech.areaCode" field="areaCode"/>
         <alias entity-alias="tn" name="contactMech.contactNumber" field="contactNumber"/>
-        <alias entity-alias="pc" name="contactMech.extension" field="extension"/>
+        <alias entity-alias="pa" name="billingAccountId" field="attrValue"/>
 
         <view-link entity-alias="pg" rel-entity-alias="ul" rel-optional="false">
             <key-map field-name="partyId" rel-field-name="partyId"/>
             <entity-condition>
                 <condition-expr entity-alias="ul" field-name="enabled" operator="not-equals" value="N"/>
-            </entity-condition>
-        </view-link>
-
-        <view-link entity-alias="pg" rel-entity-alias="pr" rel-optional="false">
-            <key-map field-name="partyId" rel-field-name="partyId"/>
-            <entity-condition>
-                <condition-expr entity-alias="pr" field-name="roleTypeId" operator="equals" value="CUSTOMER"/>
             </entity-condition>
         </view-link>
 
@@ -69,6 +76,221 @@ under the License.
 
         <view-link entity-alias="pc" rel-entity-alias="tn" rel-optional="false">
             <key-map field-name="contactMechId" rel-field-name="contactMechId"/>
+        </view-link>
+
+        <view-link entity-alias="pc" rel-entity-alias="td" rel-optional="false">
+            <key-map field-name="contactMechId" rel-field-name="contactId"/>
+        </view-link>
+
+        <view-link entity-alias="pg" rel-entity-alias="pr" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pr" field-name="roleTypeId" operator="equals" value="CUSTOMER"/>
+            </entity-condition>
+        </view-link>
+
+        <view-link entity-alias="pg" rel-entity-alias="pa" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pa" field-name="attrName" value="payment_billing"/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="PartyLookupView"
+                 package-name="org.apache.ofbiz.party"
+                 title="Party Lookup View">
+        <member-entity entity-alias="pg" entity-name="PartyGroup"/>
+        <member-entity entity-alias="pp" entity-name="PartyProfileView"/>
+
+        <alias entity-alias="pg" name="party.partyId" field="partyId"/>
+        <alias entity-alias="pp" name="party.name" field="name"/>
+        <alias entity-alias="pp" name="party.username" field="username"/>
+        <alias entity-alias="pp" name="party.contactNumber" field="contactNumber"/>
+
+        <view-link entity-alias="pg" rel-entity-alias="pp" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="PaymentLookupView"
+                 package-name="org.apache.ofbiz.accounting"
+                 title="Payment Lookup View">
+        <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
+        <member-entity entity-alias="pm" entity-name="Payment"/>
+        <member-entity entity-alias="pa" entity-name="PaymentAttribute"/>
+
+        <alias-all entity-alias="pl"/>
+        <alias entity-alias="pm" name="paymentId" field="paymentId"/>
+        <alias entity-alias="pm" name="statusId" field="statusId"/>
+        <alias entity-alias="pm" name="amount" field="amount"/>
+        <alias entity-alias="pm" name="date" field="createdStamp"/>
+        <alias entity-alias="pa" name="billingType" field="attrValue"/>
+
+        <view-link entity-alias="pl" rel-entity-alias="pm" rel-optional="false">
+            <key-map field-name="party.partyId" rel-field-name="partyIdFrom"/>
+        </view-link>
+
+        <view-link entity-alias="pm" rel-entity-alias="pa" rel-optional="false">
+            <key-map field-name="paymentId" rel-field-name="paymentId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pa" field-name="attrName" value="balanceType"/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="OrderLookupView"
+                 package-name="org.apache.ofbiz.order"
+                 title="Order Lookup View">
+        <member-entity entity-alias="oh" entity-name="OrderHeader"/>
+        <member-entity entity-alias="oi" entity-name="OrderHeaderAndItems"/>
+        <member-entity entity-alias="br" entity-name="BillingAccountRole"/>
+        <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
+        <member-entity entity-alias="op" entity-name="Product"/>
+
+        <alias-all entity-alias="pl"/>
+        <alias entity-alias="oh" name="orderId" field="orderId"/>
+        <alias entity-alias="oh" name="orderName" field="orderName"/>
+        <alias entity-alias="oh" name="orderDate" field="createdStamp"/>
+        <alias entity-alias="oi" name="productId" field="productId"/>
+        <alias entity-alias="op" name="productName" field="productName"/>
+        <alias entity-alias="oi" name="unitPrice" field="unitPrice"/>
+        <alias entity-alias="oi" name="grandTotal" field="grandTotal"/>
+
+        <view-link entity-alias="oh" rel-entity-alias="br" rel-optional="false">
+            <key-map field-name="billingAccountId" rel-field-name="billingAccountId"/>
+        </view-link>
+
+        <view-link entity-alias="oh" rel-entity-alias="oi" rel-optional="false">
+            <key-map field-name="orderId" rel-field-name="orderId"/>
+        </view-link>
+
+        <view-link entity-alias="br" rel-entity-alias="pl" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="party.partyId"/>
+        </view-link>
+
+        <view-link entity-alias="oi" rel-entity-alias="op" rel-optional="false">
+            <key-map field-name="productId" rel-field-name="productId"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="ProductLineupAttributeView"
+                 package-name="org.apache.ofbiz.product"
+                 title="Product Lineup Attribute View">
+        <member-entity entity-alias="pr" entity-name="Product"/>
+        <member-entity entity-alias="pa" entity-name="ProductAttribute"/>
+
+        <alias entity-alias="pr" name="productId" field="productId"/>
+        <alias entity-alias="pa" name="lineup" field="attrValue"/>
+
+        <view-link entity-alias="pr" rel-entity-alias="pa" rel-optional="false">
+            <key-map field-name="productId" rel-field-name="productId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pa" field-name="attrName" value="lineup"/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="ProductVolumeAttributeView"
+                 package-name="org.apache.ofbiz.product"
+                 title="Product Volume Attribute View">
+        <member-entity entity-alias="pr" entity-name="Product"/>
+        <member-entity entity-alias="pa" entity-name="ProductAttribute"/>
+
+        <alias entity-alias="pr" name="productId" field="productId"/>
+        <alias entity-alias="pa" name="volume" field="attrValue"/>
+
+        <view-link entity-alias="pr" rel-entity-alias="pa" rel-optional="false">
+            <key-map field-name="productId" rel-field-name="productId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pa" field-name="attrName" value="unitpoint"/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="ProductLookupView"
+                 package-name="org.apache.ofbiz.product"
+                 title="Product Lookup View">
+        <member-entity entity-alias="pr" entity-name="Product"/>
+        <member-entity entity-alias="pp" entity-name="ProductPrice"/>
+        <member-entity entity-alias="pl" entity-name="ProductLineupAttributeView"/>
+        <member-entity entity-alias="pv" entity-name="ProductVolumeAttributeView"/>
+
+        <alias entity-alias="pr" name="productId" field="productId"/>
+        <alias entity-alias="pr" name="productName" field="productName"/>
+        <alias entity-alias="pr" name="description" field="description"/>
+        <alias entity-alias="pr" name="longDescription" field="longDescription"/>
+        <alias entity-alias="pr" name="smallImageUrl" field="smallImageUrl"/>
+        <alias entity-alias="pr" name="mediumImageUrl" field="mediumImageUrl"/>
+        <alias entity-alias="pr" name="largeImageUrl" field="largeImageUrl"/>
+        <alias entity-alias="pr" name="detailImageUrl" field="detailImageUrl"/>
+        <alias entity-alias="pr" name="originalImageUrl" field="originalImageUrl"/>
+        <alias entity-alias="pp" name="price" field="price"/>
+        <alias entity-alias="pl" name="lineup" field="lineup"/>
+        <alias entity-alias="pv" name="volume" field="volume"/>
+
+        <view-link entity-alias="pr" rel-entity-alias="pp" rel-optional="false">
+            <key-map field-name="productId" rel-field-name="productId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pp" field-name="productPriceTypeId" value="DEFAULT_PRICE"/>
+            </entity-condition>
+        </view-link>
+
+        <view-link entity-alias="pr" rel-entity-alias="pl" rel-optional="false">
+            <key-map field-name="productId" rel-field-name="productId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pl" field-name="lineup" operator="not-equals" value="none"/>
+            </entity-condition>
+        </view-link>
+
+        <view-link entity-alias="pr" rel-entity-alias="pv" rel-optional="false">
+            <key-map field-name="productId" rel-field-name="productId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pl" field-name="lineup" operator="not-equals" value=""/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <extend-entity entity-name="BillingAccount">
+        <field name="balance" type="numeric"/>
+    </extend-entity>
+
+    <view-entity entity-name="InventoryLookupView"
+                 package-name="org.apache.ofbiz.product.inventory"
+                 title="Inventory Lookup View">
+        <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
+        <member-entity entity-alias="pa" entity-name="PartyAttribute"/>
+        <member-entity entity-alias="pr" entity-name="Product"/>
+        <member-entity entity-alias="ba" entity-name="BillingAccount"/>
+
+        <alias-all entity-alias="pl"/>
+        <alias entity-alias="pr" name="productName" field="productName"/>
+        <alias entity-alias="pr" name="description" field="description"/>
+        <alias entity-alias="pr" name="longDescription" field="longDescription"/>
+        <alias entity-alias="pr" name="smallImageUrl" field="smallImageUrl"/>
+        <alias entity-alias="pr" name="mediumImageUrl" field="mediumImageUrl"/>
+        <alias entity-alias="pr" name="largeImageUrl" field="largeImageUrl"/>
+        <alias entity-alias="pr" name="detailImageUrl" field="detailImageUrl"/>
+        <alias entity-alias="pr" name="originalImageUrl" field="originalImageUrl"/>
+        <alias entity-alias="pa" name="inventoryId" field="attrValue"/>
+        <alias entity-alias="ba" name="stock" field="balance"/>
+
+        <view-link entity-alias="pl" rel-entity-alias="pa" rel-optional="false">
+            <key-map field-name="party.partyId" rel-field-name="partyId"/>
+            <entity-condition>
+                <condition-list>
+                    <condition-expr entity-alias="pa" field-name="attrName" operator="like" value="%_billing"/>
+                    <condition-expr entity-alias="pa" field-name="attrName" operator="not-equals" value="payment_billing"/>
+                </condition-list>
+            </entity-condition>
+        </view-link>
+
+        <view-link entity-alias="pa" rel-entity-alias="pr">
+            <key-map field-name="attrDescription" rel-field-name="productId"/>
+        </view-link>
+
+        <view-link entity-alias="pa" rel-entity-alias="ba">
+            <key-map field-name="attrValue" rel-field-name="billingAccountId"/>
         </view-link>
     </view-entity>
 

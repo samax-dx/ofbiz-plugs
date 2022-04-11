@@ -40,7 +40,7 @@ public class HttpUtil {
                         .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey, e -> {
                             Object v = e.getValue();
-                            return v instanceof Object[] ? (String[]) v : new String[]{(String) v};
+                            return v instanceof Object[] ? (String[]) v : new String[]{String.valueOf(v)};
                         }));
 
                 super.getSession().setAttribute("userLogin", userLogin);
@@ -106,7 +106,7 @@ public class HttpUtil {
             }
 
             public void setParam(String name, String value) {
-                requestParams.put(name, value.split(","));
+                requestParams.put(name, Objects.toString(value, "").split(","));
                 requestBody = formToUrl(new ObjectMapper().convertValue(requestParams, JsonNode.class)).getBytes(StandardCharsets.UTF_8);
             }
 
@@ -122,7 +122,7 @@ public class HttpUtil {
 
             public void setParams(Map<String, String> params) {
                 for (Map.Entry<String, String> entry : params.entrySet()) {
-                    requestParams.put(entry.getKey(), entry.getValue().split(","));
+                    requestParams.put(entry.getKey(), Objects.toString(entry.getValue(), "").split(","));
                 }
                 requestBody = formToUrl(new ObjectMapper().convertValue(requestParams, JsonNode.class)).getBytes(StandardCharsets.UTF_8);
             }

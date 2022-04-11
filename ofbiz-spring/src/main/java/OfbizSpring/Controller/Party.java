@@ -3,8 +3,9 @@ package OfbizSpring.Controller;
 import OfbizSpring.Annotations.Authorize;
 import OfbizSpring.Annotations.OfbizService;
 import OfbizSpring.Util.JwtHelper;
-import OfbizSpring.Util.MapUtil;
+import OfbizSpring.Util.QueryUtil;
 import OfbizSpring.Util.ServiceContextUtil;
+import org.apache.ofbiz.accounting.payment.BillingAccountWorker;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.common.login.LoginServices;
 import org.apache.ofbiz.entity.Delegator;
@@ -19,7 +20,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -85,7 +87,7 @@ public class Party {
             if (result.get("partyId") == null) {
                 throw new Exception((String) result.getOrDefault("errorMessage", "Unknown result"));
             } else {
-                return UtilMisc.toMap("id", result.get("partyId"));
+                return UtilMisc.toMap("partyId", result.get("partyId"));
             }
         } catch (Exception ex) {
             return UtilMisc.toMap("errorMessage", ex.getMessage());
@@ -100,8 +102,9 @@ public class Party {
             consumes = {"application/json"},
             produces = {"application/json"}
     )
-    public Object findParty(@RequestBody Map<String, Object> request, HttpServletResponse response, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
-        return EntityQuery.use(delegator).from("PartyPortalView").where("id", signedParty.get("partyId")).queryFirst();
+    public Object findParty(@RequestBody Map<String, Object> payload, HttpServletResponse response) throws GenericServiceException, GenericEntityException {
+        Map<String, Object> result = QueryUtil.findOne(dispatcher, "PartyProfileView", payload);
+        return UtilMisc.toMap("party", result.get("item"), "count", result.get("item") == null ? 0 : 1);
     }
 
     @Authorize(groups = { "FULLADMIN" })
@@ -113,11 +116,32 @@ public class Party {
             consumes = {"application/json"},
             produces = {"application/json"}
     )
-    public Object findParties(@RequestBody Map<String, Object> request, HttpServletResponse response) throws GenericServiceException, GenericEntityException {
-        Map<String, Object> result = MapUtil.remapIt(dispatcher.runSync("performFind", UtilMisc.toMap(
-                "entityName", "PartyPortalView",
-                "inputFields", request
-        )));
-        return result.get("listIt");
+    public Object findParties(@RequestBody Map<String, Object> payload, HttpServletResponse response) throws GenericServiceException, GenericEntityException {
+        Map<String, Object> result = QueryUtil.find(dispatcher, "PartyProfileView", payload);
+        return UtilMisc.toMap("parties", result.get("list"), "count", result.get("listSize"));
+    }
+
+    @Authorize
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/profile",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Object profile(@RequestBody Map<String, Object> payload, HttpServletResponse response, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
+        payload.put("partyId", signedParty.get("partyId"));
+
+        Map<String, Object> result = QueryUtil.findOne(dispatcher, "PartyProfileView", payload);
+        return UtilMisc.toMap(
+                "profile", result.get("item"),
+                "count", result.get("listSize"),
+                "balance", getPartyBalance(result.get("item"))
+        );
+    }
+
+    private String getPartyBalance(Object partyRecord) throws GenericEntityException {
+        Map<String, Object> party = UtilMisc.toMap(partyRecord);
+        return new DecimalFormat("0.00").format(BillingAccountWorker.getBillingAccountAvailableBalance(delegator, (String) party.get("billingAccountId")).multiply(BigDecimal.valueOf(-1)));
     }
 }

@@ -1,6 +1,7 @@
 package OfbizSpring.Aspects;
 
 import OfbizSpring.Util.MapUtil;
+import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -32,7 +33,7 @@ public class OfbizServiceAspect {
 
             Object jpArg0 = jpArgs[0];
             try {
-                Map<String, Object> payload = MapUtil.remap(jpArg0);
+                Map<String, Object> payload = UtilMisc.toMap(jpArg0);
                 payload.put("login.username", "admin");
                 payload.put("login.password", "ofbiz");
                 return joinPoint.proceed();

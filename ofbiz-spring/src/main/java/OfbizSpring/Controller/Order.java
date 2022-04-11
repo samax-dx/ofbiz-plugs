@@ -1,7 +1,6 @@
 package OfbizSpring.Controller;
 
 import OfbizSpring.Annotations.Authorize;
-import OfbizSpring.Util.HttpUtil;
 import OfbizSpring.Util.ServiceContextUtil;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
@@ -23,57 +22,6 @@ public class Order {
     @Autowired
     private LocalDispatcher dispatcher;
 
-    @CrossOrigin(origins = "*")
-    @RequestMapping(
-            value = "/createOrder",
-            method = RequestMethod.POST,
-            consumes = {"application/json"},
-            produces = {"application/json"}
-    )
-    public Object createOrder(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            return dispatcher.runSync("spCreateOrder", UtilMisc.toMap(
-                    "request", request, "response", response, "login.username", "admin", "login.password", "ofbiz"
-            ));
-        } catch (Exception e) {
-            return ServiceUtil.returnError(e.getMessage());
-        }
-    }
-
-    @CrossOrigin(origins = "*")
-    @RequestMapping(
-            value = "/createSmsPackageOrder",
-            method = RequestMethod.POST,
-            consumes = {"application/json"},
-            produces = {"application/json"}
-    )
-    public Object createSmsPackageOrder(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            return dispatcher.runSync("spCreateSmsPackageOrder", UtilMisc.toMap(
-                    "request", request, "response", response, "login.username", "admin", "login.password", "ofbiz"
-            ));
-        } catch (Exception e) {
-            return ServiceUtil.returnError(e.getMessage());
-        }
-    }
-
-    @CrossOrigin(origins = "*")
-    @RequestMapping(
-            value = "/createSmsUnitOrder",
-            method = RequestMethod.POST,
-            consumes = {"application/json"},
-            produces = {"application/json"}
-    )
-    public Object createSmsUnitOrder(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            return dispatcher.runSync("spCreateSmsUnitOrder", UtilMisc.toMap(
-                    "request", request, "response", response, "login.username", "admin", "login.password", "ofbiz"
-            ));
-        } catch (Exception e) {
-            return ServiceUtil.returnError(e.getMessage());
-        }
-    }
-
     @Authorize
     @CrossOrigin(origins = "*")
     @RequestMapping(
@@ -85,12 +33,16 @@ public class Order {
     public Object purchaseSmsPackage(HttpServletRequest request, HttpServletResponse response) {
         try {
             Map<String, Object> packageOrder = dispatcher.runSync(
-                    "spCreateSmsPackageOrder",
+                    "spPlaceSmsPackageOrder",
                     ServiceContextUtil.authorizeContext(UtilMisc.toMap(
                             "request", request,
                             "response", response
                     ))
             );
+
+            if (packageOrder.get("errorMessage") != null) {
+                return packageOrder;
+            }
 
             Map<String, Object> creditedBalance = dispatcher.runSync(
                     "spAddPartyProductBalanceForOrder",
@@ -100,6 +52,10 @@ public class Order {
                             "orderId", packageOrder.get("orderId")
                     ))
             );
+
+            if (packageOrder.get("errorMessage") != null) {
+                return creditedBalance;
+            }
 
             return ServiceUtil.returnSuccess(String.format(
                     "Order ID: %s, Credited Unit: %s, Billed Amount: %s",
@@ -111,4 +67,17 @@ public class Order {
             return ServiceUtil.returnError(e.getMessage());
         }
     }
+
+//    @Authorize
+//    @CrossOrigin(origins = "*")
+//    @RequestMapping(
+//            value = "/listSmsPackages",
+//            method = RequestMethod.POST,
+//            consumes = {"application/json"},
+//            produces = {"application/json"}
+//    )
+//    public Object listSmsPackages(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException {
+//        Map<String, Object> result = QueryUtil.find(dispatcher, "ProductPriceType", payload);
+//        return UtilMisc.toMap("payments", result.get("list"), "count", result.get("listSize"));
+//    }
 }

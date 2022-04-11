@@ -19,6 +19,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.Map;
 import java.util.HashMap;
 
+///TODO: extend dispatcher to authorize all runSync
+
 /**
  * Use delegator and dispatcher from OFBiz as Spring-managed beans.
  */
