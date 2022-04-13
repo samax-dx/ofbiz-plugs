@@ -55,8 +55,8 @@ under the License.
     <service name="spAddPartyBalance" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spAddPartyBalance" export="true" auth="true">
-        <attribute name="partyId" type="String" mode="IN" optional="false" />
-        <attribute name="amount" type="String" mode="IN" optional="false" />
+        <attribute name="partyId" type="String" mode="INOUT" optional="false" />
+        <attribute name="amount" type="String" mode="INOUT" optional="false" />
         <attribute name="paymentId" type="String" mode="OUT" optional="true" />
     </service>
 
@@ -80,14 +80,15 @@ under the License.
         <attribute name="paymentId" type="String" mode="INOUT" optional="true" />
     </service>
 
-    <service name="spPlaceSmsPackageOrder" engine="groovy"
+    <service name="spCreateOrder" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
-             invoke="spPlaceSmsPackageOrder" use-transaction="true" export="true" auth="true">
+             invoke="spCreateOrder" use-transaction="true" export="true" auth="true">
         <attribute name="request" type="javax.servlet.http.HttpServletRequest" mode="IN" optional="false"/>
         <attribute name="response" type="javax.servlet.http.HttpServletResponse" mode="IN" optional="false"/>
-        <attribute name="partyId" type="String" mode="OUT" optional="false" />
-        <attribute name="productId" type="String" mode="OUT" optional="false" />
+        <attribute name="partyId" type="String" mode="INOUT" optional="true" />
         <attribute name="orderId" type="String" mode="OUT" />
+        <attribute name="productId" type="String" mode="OUT" optional="false" />
+        <attribute name="quantity" type="String" mode="OUT" optional="false" />
         <attribute name="totalPrice" type="String" mode="OUT" />
     </service>
 
@@ -97,6 +98,7 @@ under the License.
         <attribute name="partyId" type="String" mode="INOUT" optional="false" />
         <attribute name="productId" type="String" mode="INOUT" optional="false" />
         <attribute name="orderId" type="String" mode="IN" optional="false" />
+        <attribute name="paymentId" type="String" mode="OUT" optional="false" />
         <attribute name="amount" type="String" mode="OUT" optional="false" />
     </service>
 

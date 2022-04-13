@@ -155,6 +155,7 @@ under the License.
         <alias entity-alias="oi" name="productId" field="productId"/>
         <alias entity-alias="op" name="productName" field="productName"/>
         <alias entity-alias="oi" name="unitPrice" field="unitPrice"/>
+        <alias entity-alias="oi" name="quantity" field="quantity"/>
         <alias entity-alias="oi" name="grandTotal" field="grandTotal"/>
 
         <view-link entity-alias="oh" rel-entity-alias="br" rel-optional="false">

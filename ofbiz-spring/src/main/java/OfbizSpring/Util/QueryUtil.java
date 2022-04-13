@@ -4,7 +4,6 @@ import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
 
-import java.util.List;
 import java.util.Map;
 
 /*
@@ -28,13 +27,13 @@ public class QueryUtil {
     public static Map<String, Object> find(LocalDispatcher dispatcher, String entityName, Map<String, Object> inputFields) throws GenericServiceException {
         int viewPage = 1;
         try {
-            int argViewPage = Integer.parseInt((String) inputFields.get("page"));
+            int argViewPage = Integer.parseInt(inputFields.get("page").toString());
             viewPage = argViewPage > 0 ? argViewPage : viewPage;
         } catch (Exception ignored) {}
 
         int viewSize = 10;
         try {
-            int argViewSize = Integer.parseInt((String) inputFields.get("limit"));
+            int argViewSize = Integer.parseInt(inputFields.get("limit").toString());
             viewSize = argViewSize > 0 ? argViewSize : viewSize;
         } catch (Exception ignored) {}
 
@@ -43,6 +42,8 @@ public class QueryUtil {
         inputFields.remove("login.username");
         inputFields.remove("login.password");
         inputFields.remove("userLogin");
+
+        inputFields.put("noConditionFind", "Y");
 
         Map<String, Object> result = dispatcher.runSync("performFindList", ServiceContextUtil.authorizeContext(
             UtilMisc.toMap(

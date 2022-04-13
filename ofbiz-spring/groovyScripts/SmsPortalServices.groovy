@@ -146,7 +146,9 @@ Map<String, Object> addPartyBalance(Map<String, Object> parameters) {
 		))
 
 		svcOut = ServiceUtil.returnSuccess()
+		svcOut.amount = parameters.get("amount")
 		svcOut.paymentId = payment.paymentId
+		svcOut.partyId = parameters.get("partyId")
 	} catch (Exception e) {
 		svcOut = ServiceUtil.returnError(e.message)
 		svcOut.paymentId = null
@@ -267,11 +269,12 @@ Map<String, Object> createOrder(request, response, currentBalance = -1.0) {
 }
 
 ///TODO: Retrieve `CURRENT_CATALOG_ID, currencyUomId` from configuration
-Map<String, Object> spPlaceSmsPackageOrder() {
+Map<String, Object> spCreateOrder() {
 	def request = HttpUtil.toWebRequest(parameters.request, userLogin, delegator, dispatcher)
 	def response = HttpUtil.toWebResponse(parameters.response)
 
-	String partyId = request.getAttribute("signedParty").get("partyId")
+//	String partyId = request.getAttribute("signedParty").get("partyId")
+	String partyId = parameters.partyId == null ? request.getParameter("partyId") : parameters.partyId
 	String productId = request.getParameter("productId")
 	GenericValue billingAccount = getPartyServiceBillingAccount(partyId, "payment")
 
@@ -295,6 +298,7 @@ Map<String, Object> spPlaceSmsPackageOrder() {
 
 	svcOut.put("partyId", partyId)
 	svcOut.put("productId", productId)
+	svcOut.put("quantity", request.getParameter("quantity"))
 
 	return svcOut
 }
@@ -331,12 +335,11 @@ Map<String, Object> spAddPartyProductBalanceForOrder() {
 				.queryFirst()
 	}
 
-	parameters.amount = NumberFormat.getInstance().parse((String) orderQuantity) * getProductUnitPoint((String) parameters.productId)
+	parameters.amount = NumberFormat.getInstance().parse(orderQuantity.toString()) * getProductUnitPoint((String) parameters.productId)
 	parameters.billingAccountId = billingAccount.billingAccountId
 	parameters.balanceType = "${productLineup}_billing"
 
 	Map<String, Object> partyProductBalance = addPartyBalance(parameters)
-	partyProductBalance.remove("paymentId")
 	partyProductBalance.partyId = parameters.partyId
 	partyProductBalance.productId = parameters.productId
 	partyProductBalance.amount = parameters.amount.toString()

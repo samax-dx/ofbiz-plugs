@@ -55,12 +55,12 @@ public class Inventory {
     @Authorize(groups = { "FULLADMIN" })
     @CrossOrigin(origins = "*")
     @RequestMapping(
-            value = "/listSmsPackages",
+            value = "/listProducts",
             method = RequestMethod.POST,
             consumes = {"application/json"},
             produces = {"application/json"}
     )
-    public Object listSmsPackages(@RequestBody Map<String, Object> payload) throws GenericServiceException, GenericEntityException {
+    public Object listProducts(@RequestBody Map<String, Object> payload) throws GenericServiceException, GenericEntityException {
         updateInventoryStocks(payload);
 
         Map<String, Object> result = QueryUtil.find(dispatcher, "InventoryLookupView", payload);
@@ -70,12 +70,12 @@ public class Inventory {
     @Authorize
     @CrossOrigin(origins = "*")
     @RequestMapping(
-            value = "/listPartySmsPackages",
+            value = "/listPartyProducts",
             method = RequestMethod.POST,
             consumes = {"application/json"},
             produces = {"application/json"}
     )
-    public Object listPartySmsPackages(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
+    public Object listPartyProducts(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
         payload.put("party.partyId", signedParty.get("partyId"));
         updateInventoryStocks(payload);
 
