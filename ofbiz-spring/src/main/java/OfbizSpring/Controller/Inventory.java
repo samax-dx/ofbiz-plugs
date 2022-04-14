@@ -76,7 +76,7 @@ public class Inventory {
             produces = {"application/json"}
     )
     public Object listPartyProducts(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
-        payload.put("party.partyId", signedParty.get("partyId"));
+        payload.put("partyId", signedParty.get("partyId"));
         updateInventoryStocks(payload);
 
         Map<String, Object> result = QueryUtil.find(dispatcher, "InventoryLookupView", payload);

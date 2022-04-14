@@ -43,7 +43,7 @@ under the License.
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
              invoke="spCreateParty" export="true" auth="true">
         <attribute name="name" type="String" mode="IN" optional="false" />
-        <attribute name="username" type="String" mode="IN" optional="false" />
+        <attribute name="loginId" type="String" mode="IN" optional="false" />
         <attribute name="password" type="String" mode="IN" optional="false" />
         <attribute name="passwordConfirm" type="String" mode="IN" optional="false" />
         <attribute name="contactMech.countryCode" type="String" mode="IN" optional="false" />

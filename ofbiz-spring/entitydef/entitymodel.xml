@@ -52,8 +52,8 @@ under the License.
         <member-entity entity-alias="pa" entity-name="PartyAttribute"/>
 
         <alias entity-alias="pg" name="partyId" field="partyId"/>
+        <alias entity-alias="ul" name="loginId" field="userLoginId"/>
         <alias entity-alias="pg" name="name" field="groupName"/>
-        <alias entity-alias="ul" name="username" field="userLoginId"/>
         <alias entity-alias="td" name="contactNumber" field="dialNumber"/>
         <alias entity-alias="tn" name="contactMech.countryCode" field="countryCode"/>
         <alias entity-alias="tn" name="contactMech.areaCode" field="areaCode"/>
@@ -103,10 +103,9 @@ under the License.
         <member-entity entity-alias="pg" entity-name="PartyGroup"/>
         <member-entity entity-alias="pp" entity-name="PartyProfileView"/>
 
-        <alias entity-alias="pg" name="party.partyId" field="partyId"/>
-        <alias entity-alias="pp" name="party.name" field="name"/>
-        <alias entity-alias="pp" name="party.username" field="username"/>
-        <alias entity-alias="pp" name="party.contactNumber" field="contactNumber"/>
+        <alias entity-alias="pg" name="partyId" field="partyId"/>
+        <alias entity-alias="pp" name="partyName" field="name"/>
+        <alias entity-alias="pp" name="partyLoginId" field="loginId"/>
 
         <view-link entity-alias="pg" rel-entity-alias="pp" rel-optional="false">
             <key-map field-name="partyId" rel-field-name="partyId"/>
@@ -128,7 +127,7 @@ under the License.
         <alias entity-alias="pa" name="billingType" field="attrValue"/>
 
         <view-link entity-alias="pl" rel-entity-alias="pm" rel-optional="false">
-            <key-map field-name="party.partyId" rel-field-name="partyIdFrom"/>
+            <key-map field-name="partyId" rel-field-name="partyIdFrom"/>
         </view-link>
 
         <view-link entity-alias="pm" rel-entity-alias="pa" rel-optional="false">
@@ -167,7 +166,7 @@ under the License.
         </view-link>
 
         <view-link entity-alias="br" rel-entity-alias="pl" rel-optional="false">
-            <key-map field-name="partyId" rel-field-name="party.partyId"/>
+            <key-map field-name="partyId" rel-field-name="partyId"/>
         </view-link>
 
         <view-link entity-alias="oi" rel-entity-alias="op" rel-optional="false">
@@ -277,7 +276,7 @@ under the License.
         <alias entity-alias="ba" name="stock" field="balance"/>
 
         <view-link entity-alias="pl" rel-entity-alias="pa" rel-optional="false">
-            <key-map field-name="party.partyId" rel-field-name="partyId"/>
+            <key-map field-name="partyId" rel-field-name="partyId"/>
             <entity-condition>
                 <condition-list>
                     <condition-expr entity-alias="pa" field-name="attrName" operator="like" value="%_billing"/>
@@ -294,5 +293,66 @@ under the License.
             <key-map field-name="attrValue" rel-field-name="billingAccountId"/>
         </view-link>
     </view-entity>
+
+    <entity entity-name="CampaignTask"
+            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
+            title="Telecom Dial Number">
+        <field name="campaignTaskId" type="id"/>
+        <field name="phoneNumber" type="tel-number"/>
+        <field name="status" type="indicator"/>
+        <field name="campaignId" type="id"/>
+
+        <prim-key field="campaignTaskId"/>
+
+        <relation type="one" rel-entity-name="Campaign">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+        </relation>
+    </entity>
+
+    <entity entity-name="Campaign"
+            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
+            title="Telecom Dial Number">
+        <field name="campaignId" type="id"/>
+        <field name="campaignName" type="long-varchar"/>
+        <field name="message" type="description"/>
+        <field name="date" type="date-time"/>
+        <field name="partyId" type="id"/>
+
+        <prim-key field="campaignId"/>
+
+        <relation type="one" rel-entity-name="PartyGroup">
+            <key-map field-name="partyId" rel-field-name="partyId" />
+        </relation>
+        <relation type="many" rel-entity-name="CampaignTask">
+            <key-map field-name="campaignId" rel-field-name="campaignId" />
+        </relation>
+    </entity>
+
+    <view-entity entity-name="PartyCampaignListView"
+                 package-name="org.apache.ofbiz.party"
+                 title="Campaign Lookup View">
+        <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
+        <member-entity entity-alias="ca" entity-name="Campaign"/>
+        <member-entity entity-alias="ct" entity-name="CampaignTask"/>
+
+        <alias entity-alias="pl" name="partyId" field="partyId"/>
+        <alias entity-alias="pl" name="partyName" field="partyId"/>
+        <alias entity-alias="ca" name="campaignID" field="campaignId"/>
+    </view-entity>
+
+    <!--view-entity entity-name="CampaignTaskView"
+                 package-name="org.apache.ofbiz.party"
+                 title="Campaign Lookup View">
+        <member-entity entity-alias="ct" entity-name="CampaignTask"/>
+        <member-entity entity-alias="ca" entity-name="Campaign"/>
+        <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
+
+        <alias-all entity-alias="ct"/>
+        <alias entity-alias="pp" name="partyName" field="name"/>
+
+        <view-link entity-alias="pg" rel-entity-alias="pp" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+        </view-link>
+    </view-entity-->
 
 </entitymodel>

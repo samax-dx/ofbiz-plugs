@@ -46,7 +46,7 @@ public class Party {
         Map<String, Object> dbUser;
 
         try {
-            dbUser = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", rqUser.get("username")).queryFirst();
+            dbUser = EntityQuery.use(delegator).from("UserLogin").where("userLoginId", rqUser.get("loginId")).queryFirst();
             if (dbUser == null) {
                 throw new Exception("User not found");
             }

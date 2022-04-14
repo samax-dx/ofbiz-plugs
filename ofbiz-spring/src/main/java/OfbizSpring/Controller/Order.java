@@ -143,7 +143,7 @@ public class Order {
             produces = {"application/json"}
     )
     public Object listPartyOrders(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException {
-        payload.put("party.partyId", signedParty.get("partyId"));
+        payload.put("partyId", signedParty.get("partyId"));
 
         Map<String, Object> result = QueryUtil.find(dispatcher, "OrderLookupView", payload);
         return UtilMisc.toMap("orders", result.get("list"), "count", result.get("listSize"));

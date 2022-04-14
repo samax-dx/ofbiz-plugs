@@ -67,7 +67,7 @@ Map<String, Object> spCreateParty() {
 
 		Map<String, Object> login = runService("createUserLogin", UtilMisc.toMap(
 				"partyId", party.partyId,
-				"userLoginId", parameters.get("username"),
+				"userLoginId", parameters.get("loginId"),
 				"currentPassword", parameters.get("password"),
 				"currentPasswordVerify", parameters.get("passwordConfirm")
 		))
