@@ -294,28 +294,13 @@ under the License.
         </view-link>
     </view-entity>
 
-    <entity entity-name="CampaignTask"
-            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
-            title="Telecom Dial Number">
-        <field name="campaignTaskId" type="id"/>
-        <field name="phoneNumber" type="tel-number"/>
-        <field name="status" type="indicator"/>
-        <field name="campaignId" type="id"/>
-
-        <prim-key field="campaignTaskId"/>
-
-        <relation type="one" rel-entity-name="Campaign">
-            <key-map field-name="campaignId" rel-field-name="campaignId"/>
-        </relation>
-    </entity>
-
     <entity entity-name="Campaign"
             package-name="ofbiz.plugins.ofbiz-spring.sms-task"
-            title="Telecom Dial Number">
+            title="SMS Campaign">
         <field name="campaignId" type="id"/>
         <field name="campaignName" type="long-varchar"/>
         <field name="message" type="description"/>
-        <field name="date" type="date-time"/>
+        <field name="runCount" type="numeric"/>
         <field name="partyId" type="id"/>
 
         <prim-key field="campaignId"/>
@@ -328,31 +313,106 @@ under the License.
         </relation>
     </entity>
 
-    <view-entity entity-name="PartyCampaignListView"
-                 package-name="org.apache.ofbiz.party"
-                 title="Campaign Lookup View">
-        <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
-        <member-entity entity-alias="ca" entity-name="Campaign"/>
-        <member-entity entity-alias="ct" entity-name="CampaignTask"/>
+    <entity entity-name="CampaignTask"
+            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
+            title="SMS Campaign-Task">
+        <field name="campaignTaskId" type="id"/>
+        <field name="phoneNumber" type="tel-number"/>
+        <field name="status" type="indicator"/>
+        <field name="campaignId" type="id"/>
 
-        <alias entity-alias="pl" name="partyId" field="partyId"/>
-        <alias entity-alias="pl" name="partyName" field="partyId"/>
-        <alias entity-alias="ca" name="campaignID" field="campaignId"/>
+        <prim-key field="campaignTaskId"/>
+
+        <relation type="one" rel-entity-name="Campaign">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+        </relation>
+    </entity>
+
+    <view-entity entity-name="CampaignTaskCountPending"
+                 package-name="org.apache.ofbiz.party"
+                 title="Campaign pending task count">
+        <member-entity entity-alias="pca" entity-name="Campaign"/>
+        <member-entity entity-alias="pct" entity-name="CampaignTask"/>
+
+        <alias entity-alias="pca" name="campaignId" field="campaignId" group-by="true"/>
+        <alias entity-alias="pct" name="pending" field="campaignId" function="count"/>
+
+        <view-link entity-alias="pca" rel-entity-alias="pct" rel-optional="false">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pct" field-name="status" value="0"/>
+            </entity-condition>
+        </view-link>
     </view-entity>
 
-    <!--view-entity entity-name="CampaignTaskView"
+    <view-entity entity-name="CampaignTaskCountComplete"
                  package-name="org.apache.ofbiz.party"
-                 title="Campaign Lookup View">
-        <member-entity entity-alias="ct" entity-name="CampaignTask"/>
+                 title="Campaign complete task count">
         <member-entity entity-alias="ca" entity-name="Campaign"/>
+        <member-entity entity-alias="ct" entity-name="CampaignTask"/>
+
+        <alias entity-alias="ca" name="campaignId" field="campaignId" group-by="true"/>
+        <alias entity-alias="ct" name="complete" field="campaignId" function="count"/>
+
+        <view-link entity-alias="ca" rel-entity-alias="ct" rel-optional="false">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+            <entity-condition>
+                <condition-expr entity-alias="ct" field-name="status" value="1"/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="CampaignTaskCountTotal"
+                 package-name="org.apache.ofbiz.party"
+                 title="Campaign total task count">
+        <member-entity entity-alias="ca" entity-name="Campaign"/>
+        <member-entity entity-alias="ct" entity-name="CampaignTask"/>
+
+        <alias entity-alias="ca" name="campaignId" field="campaignId" group-by="true"/>
+        <alias entity-alias="ct" name="taskTotal" field="campaignId" function="count"/>
+
+        <view-link entity-alias="ca" rel-entity-alias="ct" rel-optional="false">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="CampaignTaskReport"
+                 package-name="org.apache.ofbiz.party"
+                 title="Campaign-Task report">
+        <member-entity entity-alias="ca" entity-name="Campaign"/>
+        <member-entity entity-alias="tp" entity-name="CampaignTaskCountPending"/>
+        <member-entity entity-alias="tc" entity-name="CampaignTaskCountComplete"/>
+        <member-entity entity-alias="tt" entity-name="CampaignTaskCountTotal"/>
         <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
 
-        <alias-all entity-alias="ct"/>
-        <alias entity-alias="pp" name="partyName" field="name"/>
+        <alias entity-alias="ca" name="campaignId" field="campaignId"/>
+        <alias entity-alias="ca" name="campaignName" field="name"/>
+        <alias entity-alias="ca" name="cratedOn" field="createdStamp"/>
+        <alias entity-alias="ca" name="updatedOn" field="lastUpdatedStamp"/>
+        <alias entity-alias="ca" name="runCount" field="runCount"/>
+        <alias entity-alias="ca" name="message" field="message"/>
+        <alias entity-alias="tp" name="pending" field="pending"/>
+        <alias entity-alias="tc" name="complete" field="complete"/>
+        <alias entity-alias="tt" name="taskTotal" field="taskTotal"/>
+        <alias entity-alias="pl" name="partyId" field="partyId"/>
+        <alias entity-alias="pl" name="partyName" field="partyName"/>
+        <alias entity-alias="pl" name="partyLoginId" field="partyLoginId"/>
 
-        <view-link entity-alias="pg" rel-entity-alias="pp" rel-optional="false">
+        <view-link entity-alias="ca" rel-entity-alias="tp" rel-optional="true">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+        </view-link>
+
+        <view-link entity-alias="ca" rel-entity-alias="tc" rel-optional="true">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+        </view-link>
+
+        <view-link entity-alias="ca" rel-entity-alias="tt" rel-optional="true">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+        </view-link>
+
+        <view-link entity-alias="ca" rel-entity-alias="pl" rel-optional="false">
             <key-map field-name="partyId" rel-field-name="partyId"/>
         </view-link>
-    </view-entity-->
+    </view-entity>
 
 </entitymodel>
