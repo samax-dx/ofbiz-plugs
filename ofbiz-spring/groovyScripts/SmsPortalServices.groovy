@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 
 import java.text.DecimalFormat
 import java.text.NumberFormat
+import java.util.stream.Collectors
 
 import static OfbizSpring.Util.MapUtil.remap
 
@@ -355,8 +356,25 @@ Map<String, Object> spSendSmsBrilliant() {
 	Map<String, Object> smsGatewayConfig = parameters.SmsGatewayConfig as Map<String, Object>
 	Map<String, Object> requestPayload = request.getParams()
 
-	int requestSmsQuantity = SmsUtil.contactCount((String) requestPayload.MobileNumbers) * SmsUtil.smsCount((String) requestPayload.Message)
-	BigDecimal partySmsBalance  = BillingAccountWorker.getBillingAccountAvailableBalance(getPartyServiceBillingAccount(smsConsumerPartyId, (String) requestPayload.get("CampaignPackage"))) * -1
+	GenericValue campaign = from("Campaign")
+			.where("campaignId", requestPayload.campaignId)
+			.queryFirst()
+
+	String campaignId = campaign.campaignId
+	String campaignName = campaign.campaignName
+	String senderId = campaign.senderId
+	String message = campaign.message
+	String phoneNumbers = from("CampaignTask")
+			.where("campaignId", requestPayload.campaignId, "status", "0")
+			.queryList()
+			.stream()
+			.map({ v -> (String) v.get("phoneNumber") })
+			.collect(Collectors.toList())
+			.join(",")
+	String campaignPackage = requestPayload.get("campaignPackage")
+
+	int requestSmsQuantity = SmsUtil.contactCount(phoneNumbers) * SmsUtil.smsCount(message)
+	BigDecimal partySmsBalance  = BillingAccountWorker.getBillingAccountAvailableBalance(getPartyServiceBillingAccount(smsConsumerPartyId, campaignPackage)) * -1
 
 	if (requestSmsQuantity > partySmsBalance) {
 		return ServiceUtil.returnFailure("Insufficient balance")
@@ -364,7 +382,12 @@ Map<String, Object> spSendSmsBrilliant() {
 
 	String reportDoc;
 	try {
-		reportDoc = new SmsProviderHttp(new EndpointBrilliant(smsGatewayConfig)).sendSms(requestPayload)
+		reportDoc = new SmsProviderHttp(new EndpointBrilliant(smsGatewayConfig)).sendSms(UtilMisc.toMap(
+				"Campaign Name", campaignName,
+				"SenderId", senderId,
+				"MobileNumbers", phoneNumbers,
+				"Message", message
+		))
 	} catch (Exception e) {
 		reportDoc = e.getMessage()
 	}
@@ -374,13 +397,25 @@ Map<String, Object> spSendSmsBrilliant() {
 	if (Integer.parseInt(report.get("ErrorCode").toString()) == 0) {
 		ArrayList<Object> reportMessages = Arrays.asList(report.get("Data"))
 
-		int sentMessageCount = (int) reportMessages.stream().reduce(0, { acc, v -> acc + (v.get("MessageErrorCode") > 0 ? 0 : 1) })
-		if (sentMessageCount > 0) {
+		def completeTasks = reportMessages
+				.stream()
+				.map({ v -> delegator
+						.makeValue(
+								"CampaignTask",
+								"phoneNumber", v.MobileNumber,
+								"campaignId", campaignId,
+								"status", "1"
+						)
+				})
+				.collect(Collectors.toList())
+
+		if (completeTasks.size() > 0) {
+			delegator.storeAll(completeTasks, )
 			addPartyBalance(UtilMisc.toMap(
 					"partyId", smsConsumerPartyId,
-					"amount", String.valueOf(sentMessageCount * -1),
-					"billingAccountId", getPartyServiceBillingAccount(smsConsumerPartyId, (String) requestPayload.get("CampaignPackage")).billingAccountId,
-					"balanceType", requestPayload.get("CampaignPackage")
+					"amount", String.valueOf(completeTasks.size() * -1),
+					"billingAccountId", getPartyServiceBillingAccount(smsConsumerPartyId, campaignPackage).billingAccountId,
+					"balanceType", campaignPackage
 			))
 		}
 

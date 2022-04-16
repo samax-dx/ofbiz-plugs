@@ -264,6 +264,7 @@ under the License.
         <member-entity entity-alias="ba" entity-name="BillingAccount"/>
 
         <alias-all entity-alias="pl"/>
+        <alias entity-alias="pr" name="productId" field="productId"/>
         <alias entity-alias="pr" name="productName" field="productName"/>
         <alias entity-alias="pr" name="description" field="description"/>
         <alias entity-alias="pr" name="longDescription" field="longDescription"/>
@@ -299,9 +300,13 @@ under the License.
             title="SMS Campaign">
         <field name="campaignId" type="id"/>
         <field name="campaignName" type="long-varchar"/>
+        <field name="campaignPackage" type="id"/>
+        <field name="senderId" type="long-varchar"/>
         <field name="message" type="description"/>
+        <field name="isUnicode" type="indicator"/>
+        <field name="isFlash" type="indicator"/>
         <field name="runCount" type="numeric"/>
-        <field name="partyId" type="id"/>
+        <field name="partyId" type="id" not-null="true"/>
 
         <prim-key field="campaignId"/>
 
@@ -316,12 +321,11 @@ under the License.
     <entity entity-name="CampaignTask"
             package-name="ofbiz.plugins.ofbiz-spring.sms-task"
             title="SMS Campaign-Task">
-        <field name="campaignTaskId" type="id"/>
-        <field name="phoneNumber" type="tel-number"/>
-        <field name="status" type="indicator"/>
-        <field name="campaignId" type="id"/>
+        <field name="phoneNumber" type="tel-number" not-null="true"/>
+        <field name="status" type="indicator" not-null="true"/>
+        <field name="campaignId" type="id" not-null="true"/>
 
-        <prim-key field="campaignTaskId"/>
+        <prim-key field="phoneNumber"/>
 
         <relation type="one" rel-entity-name="Campaign">
             <key-map field-name="campaignId" rel-field-name="campaignId"/>
@@ -386,11 +390,13 @@ under the License.
         <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
 
         <alias entity-alias="ca" name="campaignId" field="campaignId"/>
-        <alias entity-alias="ca" name="campaignName" field="name"/>
+        <alias entity-alias="ca" name="campaignName" field="campaignName"/>
         <alias entity-alias="ca" name="cratedOn" field="createdStamp"/>
         <alias entity-alias="ca" name="updatedOn" field="lastUpdatedStamp"/>
         <alias entity-alias="ca" name="runCount" field="runCount"/>
         <alias entity-alias="ca" name="message" field="message"/>
+        <alias entity-alias="ca" name="isUnicode" field="isUnicode"/>
+        <alias entity-alias="ca" name="isFlash" field="isFlash"/>
         <alias entity-alias="tp" name="pending" field="pending"/>
         <alias entity-alias="tc" name="complete" field="complete"/>
         <alias entity-alias="tt" name="taskTotal" field="taskTotal"/>
