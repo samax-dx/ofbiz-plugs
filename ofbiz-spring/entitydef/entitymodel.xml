@@ -394,6 +394,7 @@ under the License.
         <alias entity-alias="ca" name="cratedOn" field="createdStamp"/>
         <alias entity-alias="ca" name="updatedOn" field="lastUpdatedStamp"/>
         <alias entity-alias="ca" name="runCount" field="runCount"/>
+        <alias entity-alias="ca" name="senderId" field="senderId"/>
         <alias entity-alias="ca" name="message" field="message"/>
         <alias entity-alias="ca" name="isUnicode" field="isUnicode"/>
         <alias entity-alias="ca" name="isFlash" field="isFlash"/>

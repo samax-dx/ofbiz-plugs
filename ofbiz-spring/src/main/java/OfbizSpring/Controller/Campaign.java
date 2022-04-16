@@ -128,13 +128,45 @@ public class Campaign {
             return UtilMisc.toMap("campaign", null, "tasks", null);
         }
 
-        Map<String, Object> campaign = QueryUtil.findOne(dispatcher, "Campaign", UtilMisc.toMap(
+        Map<String, Object> campaign = QueryUtil.findOne(dispatcher, "CampaignTaskReport", UtilMisc.toMap(
                 "campaignId", campaignId
         ));
 
         Map<String, Object> tasks = QueryUtil.find(dispatcher, "CampaignTask", UtilMisc.toMap(
                 "campaignId", campaignId,
                 "status", "0",
+                "page", payload.getOrDefault("page", 1),
+                "limit", payload.getOrDefault("limit", 10000)
+        ));
+
+        return UtilMisc.toMap(
+                "campaign", campaign.get("item"),
+                "tasks", tasks.get("list"),
+                "count", tasks.get("listSize")
+        );
+    }
+
+    @Authorize
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/getCampaignTasks",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Object getCampaignTasks(@RequestBody Map<String, Object> payload) throws GenericServiceException {
+        String campaignId = (String) payload.getOrDefault("campaignId", "");
+
+        if (campaignId.equals("")) {
+            return UtilMisc.toMap("campaign", null, "tasks", null);
+        }
+
+        Map<String, Object> campaign = QueryUtil.findOne(dispatcher, "CampaignTaskReport", UtilMisc.toMap(
+                "campaignId", campaignId
+        ));
+
+        Map<String, Object> tasks = QueryUtil.find(dispatcher, "CampaignTask", UtilMisc.toMap(
+                "campaignId", campaignId,
                 "page", payload.getOrDefault("page", 1),
                 "limit", payload.getOrDefault("limit", 10000)
         ));
