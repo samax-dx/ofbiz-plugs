@@ -1,5 +1,6 @@
 import OfbizSpring.Util.HttpUtil
 import SmsGateway.SmsTaskException
+import SmsGateway.http.EndpointTeletalk
 import SmsGateway.http.SmsProviderHttp
 import SmsGateway.http.EndpointBrilliant
 import SmsGateway.util.SmsUtil
@@ -382,7 +383,7 @@ Map<String, Object> spSendSmsBrilliant() {
 
 	String reportDoc;
 	try {
-		reportDoc = new SmsProviderHttp(new EndpointBrilliant(smsGatewayConfig)).sendSms(UtilMisc.toMap(
+		reportDoc = new SmsProviderHttp(new EndpointTeletalk(smsGatewayConfig)).sendSms(UtilMisc.toMap(
 				"Campaign Name", campaignName,
 				"SenderId", senderId,
 				"MobileNumbers", phoneNumbers,
@@ -410,7 +411,7 @@ Map<String, Object> spSendSmsBrilliant() {
 				.collect(Collectors.toList())
 
 		if (completeTasks.size() > 0) {
-			delegator.storeAll(completeTasks, )
+			delegator.storeAll(completeTasks)
 			addPartyBalance(UtilMisc.toMap(
 					"partyId", smsConsumerPartyId,
 					"amount", String.valueOf(completeTasks.size() * -1),
