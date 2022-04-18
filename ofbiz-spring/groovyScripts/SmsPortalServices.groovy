@@ -357,15 +357,23 @@ Map<String, Object> spSendSmsBrilliant() {
 	Map<String, Object> smsGatewayConfig = parameters.SmsGatewayConfig as Map<String, Object>
 	Map<String, Object> requestPayload = request.getParams()
 
-	GenericValue campaign = from("Campaign")
+	GenericValue campaign = requestPayload.campaignId == null || requestPayload.campaignId.toString().trim().isEmpty() ? null : from("Campaign")
 			.where("campaignId", requestPayload.campaignId)
 			.queryFirst()
+
+	if (campaign == null) {
+		campaign = delegator.makeValue("Campaign")
+		campaign.put("campaignId", null)
+		campaign.put("campaignName", null)
+		campaign.put("senderId", requestPayload.senderId)
+		campaign.put("message", requestPayload.message)
+	}
 
 	String campaignId = campaign.campaignId
 	String campaignName = campaign.campaignName
 	String senderId = campaign.senderId
 	String message = campaign.message
-	String phoneNumbers = from("CampaignTask")
+	String phoneNumbers = campaignId == null ? requestPayload.phoneNumbers : from("CampaignTask")
 			.where("campaignId", requestPayload.campaignId, "status", "0")
 			.queryList()
 			.stream()
@@ -411,7 +419,10 @@ Map<String, Object> spSendSmsBrilliant() {
 				.collect(Collectors.toList())
 
 		if (completeTasks.size() > 0) {
-			delegator.storeAll(completeTasks)
+			if (campaignId != null) {
+				delegator.storeAll(completeTasks)
+			}
+
 			addPartyBalance(UtilMisc.toMap(
 					"partyId", smsConsumerPartyId,
 					"amount", String.valueOf(completeTasks.size() * -1),

@@ -46,10 +46,19 @@ public class EndpointTeletalk extends EndpointBase {
         Map<String, Object> reportOut = UtilMisc.toMap("ErrorCode", report.get("error_code"));
 
         if (reportOut.get("ErrorCode").toString().equals("0")) {
+//            def tasks = Arrays
+//                    .asList(report.get("smsInfo"))
+//                    .stream()
+//                    .map({ v -> UtilMisc.toMap("MobileNumber", v["msisdn"][0])})
+//                    .collect(Collectors.toList());
             def tasks = Arrays
                     .asList(report.get("smsInfo"))
                     .stream()
-                    .map({ v -> UtilMisc.toMap("MobileNumber", v["msisdn"][0])})
+                    .map({ v -> v["msisdn"] })
+                    .collect(Collectors.toList())
+                    .first()
+                    .stream()
+                    .map({ v  -> UtilMisc.toMap("MobileNumber", v) })
                     .collect(Collectors.toList());
 
             reportOut.put("Data", tasks);
