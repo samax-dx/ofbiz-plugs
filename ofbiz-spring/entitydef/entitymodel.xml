@@ -34,11 +34,14 @@ under the License.
             entity-name="TelecomDialNumber">
         <field name="contactId" type="id"/>
         <field name="dialNumber" type="long-varchar"/>
+
         <prim-key field="contactId"/>
+
         <relation type="one" rel-entity-name="ContactMech">
             <key-map field-name="contactId" rel-field-name="contactMechId" />
         </relation>
     </entity>
+
 
     <view-entity entity-name="PartyProfileView"
                  package-name="org.apache.ofbiz.party"
@@ -112,6 +115,7 @@ under the License.
         </view-link>
     </view-entity>
 
+
     <view-entity entity-name="PaymentLookupView"
                  package-name="org.apache.ofbiz.accounting"
                  title="Payment Lookup View">
@@ -137,6 +141,7 @@ under the License.
             </entity-condition>
         </view-link>
     </view-entity>
+
 
     <view-entity entity-name="OrderLookupView"
                  package-name="org.apache.ofbiz.order"
@@ -173,6 +178,7 @@ under the License.
             <key-map field-name="productId" rel-field-name="productId"/>
         </view-link>
     </view-entity>
+
 
     <view-entity entity-name="ProductLineupAttributeView"
                  package-name="org.apache.ofbiz.product"
@@ -251,9 +257,11 @@ under the License.
         </view-link>
     </view-entity>
 
+
     <extend-entity entity-name="BillingAccount">
         <field name="balance" type="numeric"/>
     </extend-entity>
+
 
     <view-entity entity-name="InventoryLookupView"
                  package-name="org.apache.ofbiz.product.inventory"
@@ -295,6 +303,7 @@ under the License.
         </view-link>
     </view-entity>
 
+
     <entity entity-name="Campaign"
             package-name="ofbiz.plugins.ofbiz-spring.sms-task"
             title="SMS Campaign">
@@ -323,9 +332,11 @@ under the License.
             title="SMS Campaign-Task">
         <field name="phoneNumber" type="tel-number" not-null="true"/>
         <field name="status" type="indicator" not-null="true"/>
+        <field name="report" type="value"/>
         <field name="campaignId" type="id" not-null="true"/>
 
         <prim-key field="phoneNumber"/>
+        <prim-key field="campaignId"/>
 
         <relation type="one" rel-entity-name="Campaign">
             <key-map field-name="campaignId" rel-field-name="campaignId"/>
@@ -419,6 +430,126 @@ under the License.
 
         <view-link entity-alias="ca" rel-entity-alias="pl" rel-optional="false">
             <key-map field-name="partyId" rel-field-name="partyId"/>
+        </view-link>
+    </view-entity>
+
+
+    <entity entity-name="Prefix"
+            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
+            title="Mobile Carrier Prefix">
+
+        <field name="prefixId" type="id"/>
+        <field name="countryCode" type="value"/>
+        <field name="description" type="value"/>
+
+        <prim-key field="prefixId"/>
+    </entity>
+
+    <entity entity-name="Route"
+            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
+            title="Telecom Routes">
+        <field name="routeId" type="id"/>
+        <field name="description" type="value"/>
+        <field name="disabled" type="indicator"/>
+
+        <prim-key field="routeId"/>
+    </entity>
+
+    <entity entity-name="DialPlan"
+            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
+            title="Telecom DialPlan">
+        <field name="dialPlanId" type="id"/>
+        <field name="routeId" type="id"/>
+        <field name="priority" type="numeric"/>
+        <field name="egressPrefix" type="value"/>
+        <field name="digitCut" type="numeric"/>
+
+        <prim-key field="dialPlanId"/>
+        <prim-key field="routeId"/>
+
+        <relation type="one" rel-entity-name="Prefix">
+            <key-map field-name="dialPlanId" rel-field-name="prefixId" />
+        </relation>
+
+        <relation type="one" rel-entity-name="Route">
+            <key-map field-name="routeId" rel-field-name="routeId" />
+        </relation>
+    </entity>
+
+    <entity entity-name="PackagePrefix"
+            package-name="ofbiz.plugins.ofbiz-spring.sms-task"
+            title="Mobile Carrier Prefix">
+        <field name="packageId" type="id"/>
+        <field name="dialPlanId" type="id"/>
+        <field name="prefix" type="value"/>
+
+        <prim-key field="packageId"/>
+        <prim-key field="dialPlanId"/>
+
+        <relation type="one" rel-entity-name="Product">
+            <key-map field-name="packageId" rel-field-name="productId" />
+        </relation>
+
+        <relation type="many" rel-entity-name="DialPlan">
+            <key-map field-name="dialPlanId" rel-field-name="dialPlanId" />
+        </relation>
+    </entity>
+
+    <view-entity entity-name="DialPlanActive"
+                 package-name="org.apache.ofbiz.party"
+                 title="DialPlan with active Routes">
+        <member-entity entity-alias="dp" entity-name="DialPlan"/>
+        <member-entity entity-alias="ro" entity-name="Route"/>
+
+        <alias-all entity-alias="dp"/>
+
+        <view-link entity-alias="dp" rel-entity-alias="ro" rel-optional="false">
+            <key-map field-name="routeId" rel-field-name="routeId"/>
+            <entity-condition>
+                <condition-expr entity-alias="ro" field-name="disabled" operator="not-equals" value="Y"/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="DialPlanActivePrioritized"
+                 package-name="org.apache.ofbiz.party"
+                 title="DialPlan with active Routes">
+        <member-entity entity-alias="da" entity-name="DialPlanActive"/>
+        <member-entity entity-alias="dp" entity-name="DialPlan"/>
+
+        <alias entity-alias="da" name="dialPlanId" field="dialPlanId" group-by="true"/>
+        <alias entity-alias="da" name="priority" field="priority" function="min"/>
+
+        <view-link entity-alias="da" rel-entity-alias="dp" rel-optional="false">
+            <key-map field-name="dialPlanId" rel-field-name="dialPlanId"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="DialPlanPriorityView"
+                 package-name="org.apache.ofbiz.party"
+                 title="DialPlan with active Routes">
+        <member-entity entity-alias="da" entity-name="DialPlanActivePrioritized"/>
+        <member-entity entity-alias="dp" entity-name="DialPlan"/>
+
+        <alias-all entity-alias="dp"/>
+
+        <view-link entity-alias="da" rel-entity-alias="dp" rel-optional="false">
+            <key-map field-name="dialPlanId" rel-field-name="dialPlanId"/>
+            <key-map field-name="priority" rel-field-name="priority"/>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="PackageDialPlanPriorityView"
+                 package-name="org.apache.ofbiz.party"
+                 title="DialPlan with active Routes">
+        <member-entity entity-alias="pp" entity-name="PackagePrefix"/>
+        <member-entity entity-alias="dp" entity-name="DialPlanPriorityView"/>
+
+        <alias-all entity-alias="pp"/>
+        <alias-all entity-alias="dp"/>
+
+        <view-link entity-alias="pp" rel-entity-alias="dp" rel-optional="false">
+            <key-map field-name="dialPlanId" rel-field-name="dialPlanId"/>
         </view-link>
     </view-entity>
 

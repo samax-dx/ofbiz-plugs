@@ -51,22 +51,25 @@ public class Campaign {
                     campaignTask.put("phoneNumber", e);
                     campaignTask.put("campaignId", campaign.get("campaignId"));
                     campaignTask.put("status", "0");
+                    campaignTask.put("report", "pending");
                     return campaignTask;
                 })
                 .collect(Collectors.toList());
 
+        boolean beganTransaction = TransactionUtil.begin();
         try {
-            boolean beganTransaction = TransactionUtil.begin();
-
             delegator.create(campaign);
             delegator.storeAll(tasks);
 
             if (beganTransaction) {
                 TransactionUtil.commit();
             }
-
             return UtilMisc.toMap("successMessage", "success", "campaignId", campaign.get("campaignId"));
         } catch (Exception ex) {
+
+            if (beganTransaction) {
+                TransactionUtil.commit();
+            }
             return UtilMisc.toMap("errorMessage", ex.getMessage());
         }
     }

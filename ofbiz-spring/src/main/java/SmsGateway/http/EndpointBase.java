@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestClientException;
 
+import java.util.Map;
+
+
 public abstract class EndpointBase implements IEndpoint {
     @Override
     public String post(Map<String, Object> payload) throws SmsTaskException {
@@ -20,7 +23,7 @@ public abstract class EndpointBase implements IEndpoint {
                     new HttpEntity<String>(
                             new ObjectMapper().writeValueAsString(payload),
                             new HttpHeaders() {{
-                                add("Content-Type", "application/json")
+                                add("Content-Type", "application/json");
                             }}
                     ),
                     String.class
@@ -28,7 +31,7 @@ public abstract class EndpointBase implements IEndpoint {
 
             int status = response.getStatusCode().value();
             if (status >= 400 && status <= 500) {
-                throw new SmsTaskException("Error: ${status}; ${response.getBody()};")
+                throw new SmsTaskException("Error: ${status}; ${response.getBody()};");
             }
 
             return response.getBody();

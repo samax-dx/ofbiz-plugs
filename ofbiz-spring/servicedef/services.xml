@@ -102,13 +102,24 @@ under the License.
         <attribute name="amount" type="String" mode="OUT" optional="false" />
     </service>
 
-    <service name="spSendSmsBrilliant" engine="groovy"
+    <service name="spRunCampaign" engine="groovy"
              location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
-             invoke="spSendSmsBrilliant" export="true">
+             invoke="spRunCampaign" export="true">
+        <attribute name="partyId" type="String" mode="IN" optional="false" />
+        <attribute name="campaign" type="Map" mode="IN" optional="false"/>
+        <attribute name="campaignTasks" type="List" mode="IN" optional="false"/>
+        <attribute name="serviceProviders" type="java.util.function.Function" mode="IN" optional="false"/>
+        <attribute name="servicePlanPackages" type="List" mode="IN" optional="false"/>
+        <attribute name="reports" mode="OUT" type="List" optional="false"/>
+    </service>
+
+    <service name="spSendSms" engine="groovy"
+             location="component://ofbiz-spring/groovyScripts/SmsPortalServices.groovy"
+             invoke="spSendSms" export="true">
         <attribute name="SmsConsumerPartyId" type="String" mode="IN" optional="false" />
-        <attribute name="SmsGatewayConfig" type="Map" mode="IN" optional="false"/>
-        <attribute name="request" type="javax.servlet.http.HttpServletRequest" mode="IN" optional="false"/>
-        <attribute name="response" type="javax.servlet.http.HttpServletResponse" mode="IN" optional="false"/>
+        <attribute name="SmsGatewayProvider" type="java.util.function.Function" mode="IN" optional="false"/>
+        <attribute name="campaign" type="Map" mode="IN" optional="false"/>
+        <attribute name="campaignPackage" type="String" mode="IN" optional="false"/>
         <attribute name="reports" mode="OUT" type="java.util.ArrayList" optional="false"/>
     </service>
 

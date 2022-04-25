@@ -1,11 +1,14 @@
 package SmsGateway.smpp;
 
-import SmsGateway.ISmsProvider
+import SmsGateway.ISmsProvider;
 import SmsGateway.SmsTaskException;
+
+import java.util.Map;
+
 
 public class SmsProviderSMPP implements ISmsProvider {
     @Override
-    String sendSms(Map<String, Object> smsTask) throws SmsTaskException {
+    public String sendSms(Map<String, Object> smsTask) throws SmsTaskException {
         throw new UnsupportedOperationException();
     }
 }

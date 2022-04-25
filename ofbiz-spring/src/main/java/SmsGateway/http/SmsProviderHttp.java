@@ -1,7 +1,10 @@
-package SmsGateway.http
+package SmsGateway.http;
 
-import SmsGateway.ISmsProvider
-import SmsGateway.SmsTaskException
+import SmsGateway.ISmsProvider;
+import SmsGateway.SmsTaskException;
+
+import java.util.Map;
+
 
 public class SmsProviderHttp implements ISmsProvider {
     private final IEndpoint endpoint;

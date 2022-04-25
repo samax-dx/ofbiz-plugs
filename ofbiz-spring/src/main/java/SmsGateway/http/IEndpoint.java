@@ -1,6 +1,9 @@
-package SmsGateway.http
+package SmsGateway.http;
 
-import SmsGateway.SmsTaskException
+import SmsGateway.SmsTaskException;
+
+import java.util.Map;
+
 
 public interface IEndpoint {
     String baseUrl();

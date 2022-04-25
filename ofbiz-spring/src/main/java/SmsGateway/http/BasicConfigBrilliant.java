@@ -1,6 +1,9 @@
-package SmsGateway.http
+package SmsGateway.http;
 
-import SmsGateway.util.BasicConfig
+import SmsGateway.util.BasicConfig;
+
+import java.util.Map;
+
 
 public class BasicConfigBrilliant extends BasicConfig {
     public BasicConfigBrilliant(Map<String, Object> config) {

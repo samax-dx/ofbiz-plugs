@@ -1,6 +1,5 @@
 package OfbizSpring.Aspects;
 
-import OfbizSpring.Util.MapUtil;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.service.LocalDispatcher;
