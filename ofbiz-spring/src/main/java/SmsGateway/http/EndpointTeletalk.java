@@ -35,6 +35,7 @@ public class EndpointTeletalk extends EndpointBase {
                 "acode", config.getClientId().split("::")[1]
         );
 
+        payload.put("SenderId", "8801552146283");
         Map<String, Object> campaignPayload = UtilMisc.toMap(
                 "message", payload.get("Message"),
                 "masking", payload.get("SenderId"),
