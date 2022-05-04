@@ -58,7 +58,7 @@ public class SmsTask {
                 "tasks", Arrays.stream(((String) campaignData.get("phoneNumbers"))
                         .replaceAll("[^,\\d]", "")
                         .split(","))
-                        .map(phoneNumber -> UtilMisc.toMap("phoneNumber", phoneNumber, "status", "0", "report", "unknown task"))
+                        .map(phoneNumber -> UtilMisc.toMap("phoneNumber", phoneNumber, "status", "0", "statusText", "unknown task"))
                         .collect(Collectors.toList())
         );
     }
@@ -81,15 +81,13 @@ public class SmsTask {
 
         String partyId = signedParty.get("partyId");
         Map<String, Object> campaign = payload.containsKey("campaignId") ? loadCampaign((String) payload.get("campaignId")) : loadCampaign(payload);
-        Function<String, ISmsProvider> serviceProviders = SmsProvider::getService;
-        List<String> servicePlanPackages = Arrays.asList(((String) payload.getOrDefault("campaignPackage", "")).trim().split(","));
+        Function<String, ISmsProvider> serviceProvider = SmsProvider::getService;
 
         return dispatcher.runSync("spRunCampaign", ServiceContextUtil.authorizeContext(UtilMisc.toMap(
                 "partyId", partyId,
                 "campaign", campaign,
                 "campaignTasks", campaign == null ? new ArrayList<>() : campaign.remove("tasks"),
-                "serviceProviders", serviceProviders,
-                "servicePlanPackages", servicePlanPackages
+                "SmsProvider", serviceProvider
         )));
     }
 

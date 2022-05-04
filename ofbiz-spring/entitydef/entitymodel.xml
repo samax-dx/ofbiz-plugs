@@ -332,7 +332,7 @@ under the License.
             title="SMS Campaign-Task">
         <field name="phoneNumber" type="tel-number" not-null="true"/>
         <field name="status" type="indicator" not-null="true"/>
-        <field name="report" type="value"/>
+        <field name="statusText" type="value"/>
         <field name="campaignId" type="id" not-null="true"/>
 
         <prim-key field="phoneNumber"/>
@@ -525,7 +525,7 @@ under the License.
         </view-link>
     </view-entity>
 
-    <view-entity entity-name="DialPlanPriorityView"
+    <view-entity entity-name="DialPlanActivePrioritizedView"
                  package-name="org.apache.ofbiz.party"
                  title="DialPlan with active Routes">
         <member-entity entity-alias="da" entity-name="DialPlanActivePrioritized"/>
@@ -539,17 +539,23 @@ under the License.
         </view-link>
     </view-entity>
 
-    <view-entity entity-name="PackageDialPlanPriorityView"
+    <view-entity entity-name="PartyDialPlanActivePrioritizedView"
                  package-name="org.apache.ofbiz.party"
                  title="DialPlan with active Routes">
         <member-entity entity-alias="pp" entity-name="PackagePrefix"/>
-        <member-entity entity-alias="dp" entity-name="DialPlanPriorityView"/>
+        <member-entity entity-alias="dp" entity-name="DialPlanActivePrioritizedView"/>
+        <member-entity entity-alias="iv" entity-name="InventoryLookupView"/>
 
         <alias-all entity-alias="pp"/>
         <alias-all entity-alias="dp"/>
+        <alias entity-alias="iv" name="partyId" field="partyId"/>
 
         <view-link entity-alias="pp" rel-entity-alias="dp" rel-optional="false">
             <key-map field-name="dialPlanId" rel-field-name="dialPlanId"/>
+        </view-link>
+
+        <view-link entity-alias="pp" rel-entity-alias="iv" rel-optional="false">
+            <key-map field-name="packageId" rel-field-name="productId"/>
         </view-link>
     </view-entity>
 

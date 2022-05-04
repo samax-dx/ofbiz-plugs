@@ -54,7 +54,7 @@ public class EndpointTeletalk extends EndpointBase {
             Map<String, Object> report = new HashMap<>();
             report.put("ErrorCode", -1);
             report.put("ErrorDescription", "acknowledging");
-            throw new SmsTaskException(new ObjectMapper().convertValue(report, String.class));
+            throw new SmsTaskException(new ObjectMapper().convertValue(report, JsonNode.class).toString());
         }
 
         if (response.get("error_code").toString().equals("0")) {
@@ -74,7 +74,7 @@ public class EndpointTeletalk extends EndpointBase {
             Map<String, Object> report = new HashMap<>();
             report.put("ErrorCode", response.get("error_code"));
             report.put("ErrorDescription", response.get("description"));
-            throw new SmsTaskException(new ObjectMapper().convertValue(report, String.class));
+            throw new SmsTaskException(new ObjectMapper().convertValue(report, JsonNode.class).toString());
         }
     }
 }

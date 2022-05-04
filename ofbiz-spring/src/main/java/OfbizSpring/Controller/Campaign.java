@@ -2,11 +2,13 @@ package OfbizSpring.Controller;
 
 import OfbizSpring.Annotations.Authorize;
 import OfbizSpring.Util.QueryUtil;
+import TeleCampaign.CampaignTaskProvider;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.entity.transaction.TransactionUtil;
+import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,17 +43,16 @@ public class Campaign {
         campaign.put("campaignId", delegator.getNextSeqId(campaign.getEntityName()));
         campaign.put("runCount", 0L);
 
-        List<GenericValue> tasks = Arrays
-                .stream(mobileNumbers.split("\\s*,\\s*"))
-                .map(e -> {
-                    GenericValue campaignTask = delegator.makeValue("CampaignTask");
-//                    campaignTask.put("campaignTaskId", delegator.getNextSeqId(campaignTask.getEntityName()));
-                    campaignTask.put("phoneNumber", e);
-                    campaignTask.put("campaignId", campaign.get("campaignId"));
-                    campaignTask.put("status", "0");
-                    campaignTask.put("report", "pending");
-                    return campaignTask;
-                })
+        List<GenericValue> tasks = CampaignTaskProvider
+                .create(
+                        (String) campaign.get("campaignId"),
+                        mobileNumbers,
+                        EntityQuery.use(delegator).from("DialPlanActivePrioritizedView").queryList()
+                )
+                .inboundTasks
+                .values()
+                .stream()
+                .map(campaignTask -> delegator.makeValue("CampaignTask", campaignTask.toMap()))
                 .collect(Collectors.toList());
 
         boolean beganTransaction = TransactionUtil.begin();
