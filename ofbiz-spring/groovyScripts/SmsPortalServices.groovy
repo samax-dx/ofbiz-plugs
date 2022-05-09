@@ -427,10 +427,10 @@ Map<String, Object> spRunCampaign() {
 					return acc
 				}
 
-				Map<String, Object> report = runCampaign(smsProvider, campaign, campaignTasks)
-//				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", campaignTasks.stream().map({
-//					t -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", t)
-//				}).collect(Collectors.toList()))
+//				Map<String, Object> report = runCampaign(smsProvider, campaign, campaignTasks)
+				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", campaignTasks.stream().map({
+					t -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", t)
+				}).collect(Collectors.toList()))
 
 				if (Integer.parseInt(report.get("ErrorCode").toString()) != 0) {
 					addAllFailedTasks(campaignTaskProvider, campaignTasks, (String) report.get("ErrorCode"), acc)

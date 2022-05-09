@@ -44,8 +44,8 @@ public class Prefix {
             produces = {"application/json"}
     )
     public Object savePrefix(@RequestBody Map<String, Object> payload) throws GenericEntityException {
-        GenericValue prefix = delegator.makeValue("Prefix", payload);
-        return UtilMisc.toMap("saved", delegator.createOrStore(prefix), "prefixId", prefix.get("prefixId"));
+        GenericValue value = delegator.makeValue("Prefix", payload);
+        return UtilMisc.toMap("prefix", delegator.createOrStore(value));
     }
 
     @Authorize(groups = { "FULLADMIN" })
@@ -70,8 +70,8 @@ public class Prefix {
             produces = {"application/json"}
     )
     public Object saveRoute(@RequestBody Map<String, Object> payload) throws GenericEntityException {
-        GenericValue prefix = delegator.makeValue("Route", payload);
-        return UtilMisc.toMap("saved", delegator.createOrStore(prefix), "routeId", prefix.get("routeId"));
+        GenericValue value = delegator.makeValue("Route", payload);
+        return UtilMisc.toMap("route", delegator.createOrStore(value));
     }
 
     @Authorize(groups = { "FULLADMIN" })
@@ -114,8 +114,8 @@ public class Prefix {
         payload.put("priority", priority);
         payload.put("digitCut", digitCut);
 
-        GenericValue dialPlan = delegator.makeValue("DialPlan", payload);
-        return UtilMisc.toMap("saved", delegator.createOrStore(dialPlan), "dialPlanId", dialPlan.get("dialPlanId"));
+        GenericValue value = delegator.makeValue("DialPlan", payload);
+        return UtilMisc.toMap("dialPlan", delegator.createOrStore(value));
     }
 
     @Authorize(groups = { "FULLADMIN" })
@@ -140,7 +140,7 @@ public class Prefix {
             produces = {"application/json"}
     )
     public Object savePackage(@RequestBody Map<String, Object> payload) throws GenericEntityException {
-        GenericValue dialPlan = delegator.makeValue("PackagePrefix", payload);
-        return UtilMisc.toMap("saved", delegator.createOrStore(dialPlan), "packageId", dialPlan.get("packageId"));
+        GenericValue value = delegator.makeValue("PackagePrefix", payload);
+        return UtilMisc.toMap("package", delegator.createOrStore(value));
     }
 }

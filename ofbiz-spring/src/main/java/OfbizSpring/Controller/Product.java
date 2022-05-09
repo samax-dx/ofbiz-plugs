@@ -27,7 +27,7 @@ public class Product {
             produces = {"application/json"}
     )
     public Object listProducts(@RequestBody Map<String, Object> payload) throws GenericServiceException {
-        Map<String, Object> result = QueryUtil.find(dispatcher, "ProductLookupView", payload);
+        Map<String, Object> result = QueryUtil.find(dispatcher, "ProductCompleteView", payload);
         return UtilMisc.toMap("products", result.get("list"), "count", result.get("listSize"));
     }
 }

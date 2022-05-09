@@ -4,6 +4,7 @@ import OfbizSpring.Annotations.Authorize;
 import OfbizSpring.Services.SmsProvider;
 import OfbizSpring.Util.ServiceContextUtil;
 import SmsGateway.ISmsProvider;
+import TeleCampaign.CampaignQuery;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
@@ -51,16 +52,31 @@ public class SmsTask {
     }
 
     private Map<String, Object> loadCampaign(Map<String, Object> campaignData) {
-        return UtilMisc.toMap(
-                "campaignName", campaignData.get("campaignName"),
-                "senderId", campaignData.get("senderId"),
-                "message", campaignData.get("message"),
-                "tasks", Arrays.stream(((String) campaignData.get("phoneNumbers"))
-                        .replaceAll("[^,\\d]", "")
-                        .split(","))
-                        .map(phoneNumber -> UtilMisc.toMap("phoneNumber", phoneNumber, "status", "0", "statusText", "unknown task"))
-                        .collect(Collectors.toList())
-        );
+        try {
+            GenericValue campaign = CampaignQuery.use(delegator).storeCampaign(campaignData, true);
+
+            return UtilMisc.toMap(
+                    "campaignId", campaign.get("campaignId"),
+                    "campaignName", campaign.get("campaignName"),
+                    "senderId", campaign.get("senderId"),
+                    "message", campaign.get("message"),
+                    "tasks", EntityQuery.use(delegator).from("CampaignTask")
+                            .where("campaignId", campaign.get("campaignId"), "status", "0")
+                            .queryList()
+            );
+        } catch (Exception ex) {
+            return null;
+        }
+//        return UtilMisc.toMap(
+//                "campaignName", campaignData.get("campaignName"),
+//                "senderId", campaignData.get("senderId"),
+//                "message", campaignData.get("message"),
+//                "tasks", Arrays.stream(((String) campaignData.get("phoneNumbers"))
+//                        .replaceAll("[^,\\d]", "")
+//                        .split(","))
+//                        .map(phoneNumber -> UtilMisc.toMap("phoneNumber", phoneNumber, "status", "0", "statusText", "unknown task"))
+//                        .collect(Collectors.toList())
+//        );
     }
 
     @Authorize
@@ -80,6 +96,8 @@ public class SmsTask {
 //        UtilMisc.toMap("campaignName", "Test", "senderId", "Shabbir038", "message", "Hello", "contacts", "17175,17183");
 
         String partyId = signedParty.get("partyId");
+        payload.put("partyId", partyId);
+
         Map<String, Object> campaign = payload.containsKey("campaignId") ? loadCampaign((String) payload.get("campaignId")) : loadCampaign(payload);
         Function<String, ISmsProvider> serviceProvider = SmsProvider::getService;
 

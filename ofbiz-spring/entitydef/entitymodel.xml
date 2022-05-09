@@ -257,6 +257,20 @@ under the License.
         </view-link>
     </view-entity>
 
+    <view-entity entity-name="ProductCompleteView"
+                 package-name="org.apache.ofbiz.product"
+                 title="Product Volume Attribute View">
+        <member-entity entity-alias="pl" entity-name="ProductLookupView"/>
+        <member-entity entity-alias="pr" entity-name="Product"/>
+
+        <alias-all entity-alias="pl"/>
+        <alias entity-alias="pr" name="lineupDescription" field="description"/>
+
+        <view-link entity-alias="pl" rel-entity-alias="pr" rel-optional="false">
+            <key-map field-name="lineup" rel-field-name="productId"/>
+        </view-link>
+    </view-entity>
+
 
     <extend-entity entity-name="BillingAccount">
         <field name="balance" type="numeric"/>
@@ -309,7 +323,6 @@ under the License.
             title="SMS Campaign">
         <field name="campaignId" type="id"/>
         <field name="campaignName" type="long-varchar"/>
-        <field name="campaignPackage" type="id"/>
         <field name="senderId" type="long-varchar"/>
         <field name="message" type="description"/>
         <field name="isUnicode" type="indicator"/>
@@ -391,9 +404,9 @@ under the License.
         </view-link>
     </view-entity>
 
-    <view-entity entity-name="CampaignTaskReport"
+    <view-entity entity-name="CampaignReportAll"
                  package-name="org.apache.ofbiz.party"
-                 title="Campaign-Task report">
+                 title="Campaign reports including random campaigns">
         <member-entity entity-alias="ca" entity-name="Campaign"/>
         <member-entity entity-alias="tp" entity-name="CampaignTaskCountPending"/>
         <member-entity entity-alias="tc" entity-name="CampaignTaskCountComplete"/>
@@ -402,7 +415,7 @@ under the License.
 
         <alias entity-alias="ca" name="campaignId" field="campaignId"/>
         <alias entity-alias="ca" name="campaignName" field="campaignName"/>
-        <alias entity-alias="ca" name="cratedOn" field="createdStamp"/>
+        <alias entity-alias="ca" name="createdOn" field="createdStamp"/>
         <alias entity-alias="ca" name="updatedOn" field="lastUpdatedStamp"/>
         <alias entity-alias="ca" name="runCount" field="runCount"/>
         <alias entity-alias="ca" name="senderId" field="senderId"/>
@@ -431,6 +444,56 @@ under the License.
         <view-link entity-alias="ca" rel-entity-alias="pl" rel-optional="false">
             <key-map field-name="partyId" rel-field-name="partyId"/>
         </view-link>
+    </view-entity>
+
+    <view-entity entity-name="CampaignReport"
+                 package-name="org.apache.ofbiz.party"
+                 title="Campaign reports excluding random campaigns">
+        <member-entity entity-alias="ca" entity-name="Campaign"/>
+        <member-entity entity-alias="cr" entity-name="CampaignReportAll"/>
+
+        <alias-all entity-alias="cr"/>
+
+        <view-link entity-alias="ca" rel-entity-alias="cr" rel-optional="false">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+            <entity-condition>
+                <condition-expr entity-alias="cr" field-name="campaignName" operator="not-equals" value=""/>
+            </entity-condition>
+        </view-link>
+    </view-entity>
+
+    <view-entity entity-name="CampaignTaskReport"
+                 package-name="org.apache.ofbiz.party"
+                 title="Completed Tasks">
+        <member-entity entity-alias="ct" entity-name="CampaignTask"/>
+        <member-entity entity-alias="ca" entity-name="Campaign"/>
+        <member-entity entity-alias="ul" entity-name="UserLogin"/>
+
+        <alias-all entity-alias="ct"/>
+        <alias entity-alias="ca" name="message" field="message"/>
+        <alias entity-alias="ct" name="createdOn" field="createdStamp"/>
+        <alias entity-alias="ct" name="updatedOn" field="lastUpdatedStamp"/>
+        <alias entity-alias="ul" name="partyId" field="partyId"/>
+
+        <view-link entity-alias="ct" rel-entity-alias="ca" rel-optional="false">
+            <key-map field-name="campaignId" rel-field-name="campaignId"/>
+<!--            <entity-condition>-->
+<!--                <condition-expr entity-alias="ca" field-name="campaignName" value=""/>-->
+<!--            </entity-condition>-->
+        </view-link>
+
+        <view-link entity-alias="ca" rel-entity-alias="ul" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+        </view-link>
+
+<!--        <entity-condition>-->
+<!--            <condition-list>-->
+<!--                <condition-expr entity-alias="ct" field-name="status" value="1"/>-->
+<!--                <condition-expr entity-alias="ct" field-name="statusText" operator="not-equals" value="task_enqueued"/>-->
+<!--                <condition-expr entity-alias="ct" field-name="statusText" operator="not-equals" value="invalid_number"/>-->
+<!--                <condition-expr entity-alias="ct" field-name="statusText" operator="not-equals" value="package_not_found"/>-->
+<!--            </condition-list>-->
+<!--        </entity-condition>-->
     </view-entity>
 
 

@@ -2,6 +2,7 @@ package OfbizSpring.Controller;
 
 import OfbizSpring.Annotations.Authorize;
 import OfbizSpring.Util.QueryUtil;
+import TeleCampaign.CampaignQuery;
 import TeleCampaign.CampaignTaskProvider;
 import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
@@ -11,6 +12,7 @@ import org.apache.ofbiz.entity.transaction.TransactionUtil;
 import org.apache.ofbiz.entity.util.EntityQuery;
 import org.apache.ofbiz.service.GenericServiceException;
 import org.apache.ofbiz.service.LocalDispatcher;
+import org.apache.ofbiz.service.ServiceUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,39 +38,10 @@ public class Campaign {
             produces = {"application/json"}
     )
     public Object createCampaign(@RequestBody Map<String, Object> payload) throws GenericServiceException, GenericEntityException {
-        Map<String, Object> campaignData = UtilMisc.toMap(payload);
-        String mobileNumbers = (String) campaignData.remove("phoneNumbers");
-
-        GenericValue campaign = delegator.makeValue("Campaign", campaignData);
-        campaign.put("campaignId", delegator.getNextSeqId(campaign.getEntityName()));
-        campaign.put("runCount", 0L);
-
-        List<GenericValue> tasks = CampaignTaskProvider
-                .create(
-                        (String) campaign.get("campaignId"),
-                        mobileNumbers,
-                        EntityQuery.use(delegator).from("DialPlanActivePrioritizedView").queryList()
-                )
-                .inboundTasks
-                .values()
-                .stream()
-                .map(campaignTask -> delegator.makeValue("CampaignTask", campaignTask.toMap()))
-                .collect(Collectors.toList());
-
-        boolean beganTransaction = TransactionUtil.begin();
         try {
-            delegator.create(campaign);
-            delegator.storeAll(tasks);
-
-            if (beganTransaction) {
-                TransactionUtil.commit();
-            }
+            GenericValue campaign = CampaignQuery.use(delegator).storeCampaign(payload);
             return UtilMisc.toMap("successMessage", "success", "campaignId", campaign.get("campaignId"));
         } catch (Exception ex) {
-
-            if (beganTransaction) {
-                TransactionUtil.commit();
-            }
             return UtilMisc.toMap("errorMessage", ex.getMessage());
         }
     }
@@ -84,7 +57,28 @@ public class Campaign {
     public Object saveCampaign(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
         payload.put("partyId", signedParty.get("partyId"));
 
-        return createCampaign(payload);
+        try {
+            GenericValue campaign = CampaignQuery.use(delegator).storeCampaign(payload);
+            return UtilMisc.toMap("successMessage", "success", "campaignId", campaign.get("campaignId"));
+        } catch (Exception ex) {
+            return UtilMisc.toMap("errorMessage", ex.getMessage());
+        }
+    }
+
+    @Authorize
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/deleteCampaignTask",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Object deleteCampaignTask(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
+        GenericValue task = delegator.findOne("CampaignTask", UtilMisc.toMap("phoneNumber", payload.get("phoneNumber"), "campaignId", payload.get("campaignId")), false);
+        if (Objects.equals(task.getString("status"), "1")) {
+            return ServiceUtil.returnError("Can not delete completed task");
+        }
+        return UtilMisc.toMap("deleted", delegator.removeValue(task));
     }
 
     @Authorize(groups = { "FULLADMIN" })
@@ -96,7 +90,7 @@ public class Campaign {
             produces = {"application/json"}
     )
     public Object listCampaigns(@RequestBody Map<String, Object> payload) throws GenericServiceException {
-        Map<String, Object> result = QueryUtil.find(dispatcher, "CampaignTaskReport", payload);
+        Map<String, Object> result = QueryUtil.find(dispatcher, "CampaignReport", payload);
         return UtilMisc.toMap("campaigns", result.get("list"), "count", result.get("listSize"));
     }
 
@@ -111,8 +105,23 @@ public class Campaign {
     public Object listPartyCampaigns(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException {
         payload.put("partyId", signedParty.get("partyId"));
 
-        Map<String, Object> result = QueryUtil.find(dispatcher, "CampaignTaskReport", payload);
+        Map<String, Object> result = QueryUtil.find(dispatcher, "CampaignReport", payload);
         return UtilMisc.toMap("campaigns", result.get("list"), "count", result.get("listSize"));
+    }
+
+    @Authorize
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/getPartyCampaignTaskReports",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Object getPartyCampaignTaskReports(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException {
+        payload.put("partyId", signedParty.get("partyId"));
+
+        Map<String, Object> result = QueryUtil.find(dispatcher, "CampaignTaskReport", payload);
+        return UtilMisc.toMap("taskReports", result.get("list"), "count", result.get("listSize"));
     }
 
     @Authorize
@@ -130,7 +139,7 @@ public class Campaign {
             return UtilMisc.toMap("campaign", null, "tasks", null);
         }
 
-        Map<String, Object> campaign = QueryUtil.findOne(dispatcher, "CampaignTaskReport", UtilMisc.toMap(
+        Map<String, Object> campaign = QueryUtil.findOne(dispatcher, "CampaignReport", UtilMisc.toMap(
                 "campaignId", campaignId
         ));
 
@@ -163,7 +172,7 @@ public class Campaign {
             return UtilMisc.toMap("campaign", null, "tasks", null);
         }
 
-        Map<String, Object> campaign = QueryUtil.findOne(dispatcher, "CampaignTaskReport", UtilMisc.toMap(
+        Map<String, Object> campaign = QueryUtil.findOne(dispatcher, "CampaignReport", UtilMisc.toMap(
                 "campaignId", campaignId
         ));
 
