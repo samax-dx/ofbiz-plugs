@@ -106,7 +106,7 @@ public class CampaignTaskProvider {
                     continue;
                 }
 
-                String taskId_ob = planEgressPrefix(plan).concat(task.phoneNumber.substring(planCutDigit(plan)));
+                String taskId_ob = planEgressPrefix(plan).replace("null", "").concat(task.phoneNumber.substring(planCutDigit(plan)));
                 if (outboundTasks.containsKey(taskId_ob)) {
                     inboundTasks.remove(task.phoneNumber);
                     break;
