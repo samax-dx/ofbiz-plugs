@@ -109,7 +109,7 @@ under the License.
         <attribute name="campaign" type="Map" mode="IN" optional="false"/>
         <attribute name="campaignTasks" type="List" mode="IN" optional="false"/>
         <attribute name="SmsProvider" type="java.util.function.Function" mode="IN" optional="false"/>
-        <attribute name="reports" mode="OUT" type="List" optional="false"/>
+        <attribute name="report" mode="OUT" type="Object" optional="false"/>
     </service>
 
 </services>
