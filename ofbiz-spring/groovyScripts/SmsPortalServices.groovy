@@ -411,6 +411,11 @@ Map<String, Object> spRunCampaign() {
 				String campaignPackage = pkg_route[0]
 				List<String> campaignTasks = routeTask.getValue()
 
+				if (campaignPackage == "") {
+					addAllFailedTasks(campaignTaskProvider, campaignTasks, "package_not_found", acc)
+					return acc
+				}
+
 				if (campaignTasks.size() == 0) {
 					return acc
 				}
@@ -427,10 +432,10 @@ Map<String, Object> spRunCampaign() {
 					return acc
 				}
 
-//				Map<String, Object> report = runCampaign(smsProvider, campaign, campaignTasks)
-				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", campaignTasks.stream().map({
-					t -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", t)
-				}).collect(Collectors.toList()))
+				Map<String, Object> report = runCampaign(smsProvider, campaign, campaignTasks)
+//				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", campaignTasks.stream().map({
+//					t -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", t)
+//				}).collect(Collectors.toList()))
 
 				if (Integer.parseInt(report.get("ErrorCode").toString()) != 0) {
 					addAllFailedTasks(campaignTaskProvider, campaignTasks, (String) report.get("ErrorCode"), acc)

@@ -4,6 +4,7 @@ import TeleCampaign.Models.CampaignTask;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public class CampaignTaskProvider {
@@ -46,7 +47,7 @@ public class CampaignTaskProvider {
 
     private static <T extends Map<String, Object>> Object prefixPlanAttr(T plan, String attrName, Object defaultValue) {
         try {
-            return plan.get(attrName);
+            return plan.getOrDefault(attrName, defaultValue);
         } catch (Exception ignore) {
             return "";
         }
@@ -83,9 +84,9 @@ public class CampaignTaskProvider {
     ) {
         Map<String, CampaignTask> inboundTasks = new HashMap<>();
         Map<String, CampaignTask> outboundTasks = new HashMap<>();
-        Map<String, List<String>> routeTasks = packagePlans.stream()
+        Map<String, List<String>> routeTasks = new HashMap<>();/*packagePlans.stream()
                 .map(plan -> new AbstractMap.SimpleEntry<>(planPackageId(plan) + ":" + planRouteId(plan), new ArrayList<String>()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (r1, r2) -> r1));
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (r1, r2) -> r1));*/
 
         Map<String, ? extends Map<String, Object>> packagePlanValues = packagePlans.stream()
                 .map(plan -> new AbstractMap.SimpleEntry<>(planPrefixId(plan), plan))
@@ -106,20 +107,31 @@ public class CampaignTaskProvider {
                     continue;
                 }
 
-                String taskId_ob = planEgressPrefix(plan).replace("null", "").concat(task.phoneNumber.substring(planCutDigit(plan)));
+                String taskId_ob = planEgressPrefix(plan).concat(task.phoneNumber.substring(planCutDigit(plan)));
                 if (outboundTasks.containsKey(taskId_ob)) {
                     inboundTasks.remove(task.phoneNumber);
                     break;
                 }
 
-                if (packagePlanValues.containsKey(planId)) {
-                    inboundTasks.get(task.phoneNumber).statusText = "task_enqueued";
+                inboundTasks.get(task.phoneNumber).statusText = "task_enqueued";
 
-                    Map<String, Object> pkgPlan = packagePlanValues.get(planId);
-                    routeTasks.get(planPackageId(pkgPlan) + ":" + planRouteId(pkgPlan)).add(taskId_ob);
-                } else {
-                    inboundTasks.get(task.phoneNumber).statusText = "package_not_found";
-                }
+                Map<String, Object> pkgPlan = Optional.<Map<String, Object>>ofNullable(packagePlanValues.get(planId))
+                        .orElse(plan);
+
+                routeTasks.merge(
+                        planPackageId(pkgPlan) + ":" + planRouteId(pkgPlan),
+                        Collections.singletonList(taskId_ob),
+                        (l, r) -> Stream.concat(l.stream(), r.stream()).collect(Collectors.toList())
+                );
+
+//                if (packagePlanValues.containsKey(planId)) {
+//                    inboundTasks.get(task.phoneNumber).statusText = "task_enqueued";
+//
+//                    Map<String, Object> pkgPlan = packagePlanValues.get(planId);
+//                    routeTasks.get(planPackageId(pkgPlan) + ":" + planRouteId(pkgPlan)).add(taskId_ob);
+//                } else {
+//                    inboundTasks.get(task.phoneNumber).statusText = "package_not_found";
+//                }
 
                 outboundTasks.put(taskId_ob, inboundTasks.get(task.phoneNumber));
                 break;
