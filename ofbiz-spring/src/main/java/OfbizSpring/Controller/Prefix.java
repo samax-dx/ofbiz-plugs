@@ -100,13 +100,13 @@ public class Prefix {
         long digitCut;
 
         try {
-            priority = Long.parseLong((String) payload.getOrDefault("priority", "1"));
+            priority = Long.parseLong((String) payload.getOrDefault("priority", "1").toString());
         } catch (Exception ignore) {
             priority = 1L;
         }
 
         try {
-            digitCut = Long.parseLong((String) payload.getOrDefault("digitCut", "0"));
+            digitCut = Long.parseLong((String) payload.getOrDefault("digitCut", "0").toString());
         } catch (Exception ignore) {
             digitCut = 0L;
         }
