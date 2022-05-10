@@ -30,4 +30,18 @@ public class Product {
         Map<String, Object> result = QueryUtil.find(dispatcher, "ProductCompleteView", payload);
         return UtilMisc.toMap("products", result.get("list"), "count", result.get("listSize"));
     }
+
+    @CrossOrigin(origins = "*")
+    @RequestMapping(
+            value = "/listProductLineups",
+            method = RequestMethod.POST,
+            consumes = {"application/json"},
+            produces = {"application/json"}
+    )
+    public Object listProductLineups(@RequestBody Map<String, Object> payload) throws GenericServiceException {
+        payload.put("lineup", "none");
+
+        Map<String, Object> result = QueryUtil.find(dispatcher, "ProductLookupView", payload);
+        return UtilMisc.toMap("lineups", result.get("list"), "count", result.get("listSize"));
+    }
 }

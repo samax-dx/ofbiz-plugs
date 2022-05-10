@@ -232,28 +232,29 @@ under the License.
         <alias entity-alias="pr" name="detailImageUrl" field="detailImageUrl"/>
         <alias entity-alias="pr" name="originalImageUrl" field="originalImageUrl"/>
         <alias entity-alias="pp" name="price" field="price"/>
+        <alias entity-alias="pp" name="productPriceTypeId" field="productPriceTypeId"/>
         <alias entity-alias="pl" name="lineup" field="lineup"/>
         <alias entity-alias="pv" name="volume" field="volume"/>
 
-        <view-link entity-alias="pr" rel-entity-alias="pp" rel-optional="false">
+        <view-link entity-alias="pr" rel-entity-alias="pp" rel-optional="true">
             <key-map field-name="productId" rel-field-name="productId"/>
-            <entity-condition>
-                <condition-expr entity-alias="pp" field-name="productPriceTypeId" value="DEFAULT_PRICE"/>
-            </entity-condition>
+<!--            <entity-condition>-->
+<!--                <condition-expr entity-alias="pp" field-name="productPriceTypeId" value="DEFAULT_PRICE"/>-->
+<!--            </entity-condition>-->
         </view-link>
 
         <view-link entity-alias="pr" rel-entity-alias="pl" rel-optional="false">
             <key-map field-name="productId" rel-field-name="productId"/>
-            <entity-condition>
-                <condition-expr entity-alias="pl" field-name="lineup" operator="not-equals" value="none"/>
-            </entity-condition>
+<!--            <entity-condition>-->
+<!--                <condition-expr entity-alias="pl" field-name="lineup" operator="not-equals" value="none"/>-->
+<!--            </entity-condition>-->
         </view-link>
 
-        <view-link entity-alias="pr" rel-entity-alias="pv" rel-optional="false">
+        <view-link entity-alias="pr" rel-entity-alias="pv" rel-optional="true">
             <key-map field-name="productId" rel-field-name="productId"/>
-            <entity-condition>
-                <condition-expr entity-alias="pl" field-name="lineup" operator="not-equals" value=""/>
-            </entity-condition>
+<!--            <entity-condition>-->
+<!--                <condition-expr entity-alias="pl" field-name="volume" operator="not-equals" value=""/>-->
+<!--            </entity-condition>-->
         </view-link>
     </view-entity>
 
@@ -269,6 +270,13 @@ under the License.
         <view-link entity-alias="pl" rel-entity-alias="pr" rel-optional="false">
             <key-map field-name="lineup" rel-field-name="productId"/>
         </view-link>
+
+        <entity-condition>
+            <condition-list>
+                <condition-expr entity-alias="pl" field-name="productPriceTypeId" value="DEFAULT_PRICE"/>
+                <condition-expr entity-alias="pl" field-name="lineup" operator="not-equals" value="none"/>
+            </condition-list>
+        </entity-condition>
     </view-entity>
 
 
