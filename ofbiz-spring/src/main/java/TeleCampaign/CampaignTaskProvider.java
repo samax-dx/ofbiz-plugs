@@ -66,7 +66,7 @@ public class CampaignTaskProvider {
     }
 
     private static <T extends Map<String, Object>> String planEgressPrefix(T plan) {
-        return String.valueOf(prefixPlanAttr(plan, "egressPrefix", ""));
+        return String.valueOf(prefixPlanAttr(plan, "egressPrefix", "")).replace("null", "");
     }
 
     private static <T extends Map<String, Object>> int planCutDigit(T plan) {
