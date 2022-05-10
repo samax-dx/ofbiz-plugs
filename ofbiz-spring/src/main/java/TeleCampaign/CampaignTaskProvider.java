@@ -39,7 +39,7 @@ public class CampaignTaskProvider {
             List<? extends Map<String, Object>> packagePlans
     ) {
         List<Map<String, Object>> taskList = Arrays.stream(tasks.replaceAll("[^,\\d]", "").split(","))
-                .map(task -> CampaignTask.create(task, campaignId, "0", "invalid_number").toMap())
+                .map(task -> CampaignTask.create(task, campaignId, "0", "invalid_number", null).toMap())
                 .collect(Collectors.toList());
 
         return create(taskList, dialPlans, packagePlans == null ? dialPlans : packagePlans);
@@ -113,8 +113,6 @@ public class CampaignTaskProvider {
                     break;
                 }
 
-                inboundTasks.get(task.phoneNumber).statusText = "task_enqueued";
-
                 Map<String, Object> pkgPlan = Optional.<Map<String, Object>>ofNullable(packagePlanValues.get(planId))
                         .orElse(plan);
 
@@ -123,6 +121,9 @@ public class CampaignTaskProvider {
                         Collections.singletonList(taskId_ob),
                         (l, r) -> Stream.concat(l.stream(), r.stream()).collect(Collectors.toList())
                 );
+
+                inboundTasks.get(task.phoneNumber).statusText = "task_enqueued";
+                inboundTasks.get(task.phoneNumber).packageId = planPackageId(pkgPlan);
 
 //                if (packagePlanValues.containsKey(planId)) {
 //                    inboundTasks.get(task.phoneNumber).statusText = "task_enqueued";

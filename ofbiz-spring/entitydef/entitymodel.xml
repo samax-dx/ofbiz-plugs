@@ -355,6 +355,7 @@ under the License.
         <field name="status" type="indicator" not-null="true"/>
         <field name="statusText" type="value"/>
         <field name="campaignId" type="id" not-null="true"/>
+        <field name="packageId" type="id"/>
 
         <prim-key field="phoneNumber"/>
         <prim-key field="campaignId"/>
@@ -476,12 +477,19 @@ under the License.
         <member-entity entity-alias="ct" entity-name="CampaignTask"/>
         <member-entity entity-alias="ca" entity-name="Campaign"/>
         <member-entity entity-alias="ul" entity-name="UserLogin"/>
+        <member-entity entity-alias="pr" entity-name="Product"/>
 
         <alias-all entity-alias="ct"/>
         <alias entity-alias="ca" name="message" field="message"/>
+        <alias entity-alias="ca" name="campaignName" field="campaignName"/>
         <alias entity-alias="ct" name="createdOn" field="createdStamp"/>
         <alias entity-alias="ct" name="updatedOn" field="lastUpdatedStamp"/>
         <alias entity-alias="ul" name="partyId" field="partyId"/>
+        <alias entity-alias="pr" name="packageName" field="productName"/>
+
+        <view-link entity-alias="ct" rel-entity-alias="pr" rel-optional="true">
+            <key-map field-name="packageId" rel-field-name="productId"/>
+        </view-link>
 
         <view-link entity-alias="ct" rel-entity-alias="ca" rel-optional="false">
             <key-map field-name="campaignId" rel-field-name="campaignId"/>
