@@ -302,11 +302,13 @@ under the License.
         <member-entity entity-alias="pl" entity-name="PartyLookupView"/>
         <member-entity entity-alias="pa" entity-name="PartyAttribute"/>
         <member-entity entity-alias="pr" entity-name="Product"/>
+        <member-entity entity-alias="pp" entity-name="PackagePrefixes"/>
         <member-entity entity-alias="ba" entity-name="BillingAccount"/>
 
         <alias-all entity-alias="pl"/>
         <alias entity-alias="pr" name="productId" field="productId"/>
         <alias entity-alias="pr" name="productName" field="productName"/>
+        <alias entity-alias="pp" name="packagePrefixes" field="prefixes"/>
         <alias entity-alias="pr" name="description" field="description"/>
         <alias entity-alias="pr" name="longDescription" field="longDescription"/>
         <alias entity-alias="pr" name="smallImageUrl" field="smallImageUrl"/>
@@ -332,6 +334,10 @@ under the License.
 
         <view-link entity-alias="pa" rel-entity-alias="ba">
             <key-map field-name="attrValue" rel-field-name="billingAccountId"/>
+        </view-link>
+
+        <view-link entity-alias="pr" rel-entity-alias="pp" rel-optional="true">
+            <key-map field-name="productId" rel-field-name="packageId"/>
         </view-link>
     </view-entity>
 
