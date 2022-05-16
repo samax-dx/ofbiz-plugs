@@ -12,6 +12,8 @@ import org.apache.ofbiz.service.LocalDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,31 +27,22 @@ public class Inventory {
     @Autowired
     private LocalDispatcher dispatcher;
 
-    private void updateInventoryStocks(Map<String, Object> queryData) throws GenericServiceException, GenericEntityException {
-        Map<String, Object> filterPayload = queryData
-                .entrySet()
-                .stream()
-                .filter(v -> !v.getKey().matches("^stock(?:_fld\\d_)?"))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        Map<String, Object> filterResult = QueryUtil.find(dispatcher, "InventoryLookupView", filterPayload);
-
-        if (filterResult.get("list") instanceof List) {
-            List<GenericValue> billingAccounts = ((List<?>) filterResult.get("list"))
-                    .stream()
-                    .map(v -> {
-                        String billingAccountId = (String) UtilMisc.toMap(v).get("inventoryId");
+    private static List<Map<String, Object>> withStocks(List<?> inventories, Delegator delegator) {
+        return inventories.stream()
+                .map(inventory -> {
+                    if (inventory instanceof GenericValue) {
+                        String billingAccountId = ((GenericValue) inventory).get("inventoryId").toString();
                         try {
-                            long balance = BillingAccountWorker.getBillingAccountAvailableBalance(delegator, billingAccountId).longValue() * -1;
-                            return delegator.makeValue("BillingAccount", "billingAccountId", billingAccountId, "balance", balance);
-                        } catch (Exception e) {
+                            Map<String, Object> inventoryWithStock = new HashMap<>((GenericValue) inventory);
+                            inventoryWithStock.put("stock", BillingAccountWorker.getBillingAccountAvailableBalance(delegator, billingAccountId).longValue() * -1);
+                            return inventoryWithStock;
+                        } catch (GenericEntityException ignore) {
                             return null;
                         }
-                    })
-                    .collect(Collectors.toList());
-
-            delegator.storeAll(billingAccounts);
-        }
+                    }
+                    return null;
+                })
+                .collect(Collectors.toList());
     }
 
     @Authorize(groups = { "FULLADMIN" })
@@ -61,10 +54,8 @@ public class Inventory {
             produces = {"application/json"}
     )
     public Object listProducts(@RequestBody Map<String, Object> payload) throws GenericServiceException, GenericEntityException {
-        updateInventoryStocks(payload);
-
         Map<String, Object> result = QueryUtil.find(dispatcher, "InventoryLookupView", payload);
-        return UtilMisc.toMap("products", result.get("list"), "count", result.get("listSize"));
+        return UtilMisc.toMap("products", withStocks((List<?>) result.get("list"), delegator), "count", result.get("listSize"));
     }
 
     @Authorize
@@ -77,9 +68,8 @@ public class Inventory {
     )
     public Object listPartyProducts(@RequestBody Map<String, Object> payload, @RequestAttribute Map<String, String> signedParty) throws GenericServiceException, GenericEntityException {
         payload.put("partyId", signedParty.get("partyId"));
-        updateInventoryStocks(payload);
 
         Map<String, Object> result = QueryUtil.find(dispatcher, "InventoryLookupView", payload);
-        return UtilMisc.toMap("products", result.get("list"), "count", result.get("listSize"));
+        return UtilMisc.toMap("products", withStocks((List<?>) result.get("list"), delegator), "count", result.get("listSize"));
     }
 }

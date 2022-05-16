@@ -29,18 +29,28 @@ under the License.
     <copyright>SP</copyright>
     <version>1.0.0</version>
 
-    <entity title="Telecom Dial Number"
-            package-name="org.apache.ofbiz.party.contact"
-            entity-name="TelecomDialNumber">
-        <field name="contactId" type="id"/>
-        <field name="dialNumber" type="long-varchar"/>
 
-        <prim-key field="contactId"/>
+    <view-entity entity-name="TelecomDialNumber"
+                 package-name="org.apache.ofbiz.party.contact"
+                 title="Telecom Dial Number">
+        <member-entity entity-alias="pg" entity-name="PartyGroup"/>
+        <member-entity entity-alias="pc" entity-name="PartyContactMech"/>
+        <member-entity entity-alias="tn" entity-name="TelecomNumber"/>
 
-        <relation type="one" rel-entity-name="ContactMech">
-            <key-map field-name="contactId" rel-field-name="contactMechId" />
-        </relation>
-    </entity>
+        <alias entity-alias="tn" name="contactId" field="contactMechId"/>
+        <alias entity-alias="tn" name="dialNumber" field="long-varchar:concat(coalesce(tn.COUNTRY_CODE, ''), coalesce(tn.AREA_CODE, ''), coalesce(tn.CONTACT_NUMBER, ''))"/>
+
+        <view-link entity-alias="pg" rel-entity-alias="pc" rel-optional="false">
+            <key-map field-name="partyId" rel-field-name="partyId"/>
+            <entity-condition>
+                <condition-expr entity-alias="pc" field-name="thruDate" operator="equals" value=""/>
+            </entity-condition>
+        </view-link>
+
+        <view-link entity-alias="pc" rel-entity-alias="tn" rel-optional="false">
+            <key-map field-name="contactMechId" rel-field-name="contactMechId"/>
+        </view-link>
+    </view-entity>
 
 
     <view-entity entity-name="PartyProfileView"
@@ -263,12 +273,18 @@ under the License.
                  title="Product Volume Attribute View">
         <member-entity entity-alias="pl" entity-name="ProductLookupView"/>
         <member-entity entity-alias="pr" entity-name="Product"/>
+        <member-entity entity-alias="pp" entity-name="PackagePrefixes"/>
 
         <alias-all entity-alias="pl"/>
         <alias entity-alias="pr" name="lineupDescription" field="description"/>
+        <alias entity-alias="pp" name="packagePrefixes" field="prefixes"/>
 
         <view-link entity-alias="pl" rel-entity-alias="pr" rel-optional="false">
             <key-map field-name="lineup" rel-field-name="productId"/>
+        </view-link>
+
+        <view-link entity-alias="pl" rel-entity-alias="pp" rel-optional="true">
+            <key-map field-name="lineup" rel-field-name="packageId"/>
         </view-link>
 
         <entity-condition>
@@ -278,11 +294,6 @@ under the License.
             </condition-list>
         </entity-condition>
     </view-entity>
-
-
-    <extend-entity entity-name="BillingAccount">
-        <field name="balance" type="numeric"/>
-    </extend-entity>
 
 
     <view-entity entity-name="InventoryLookupView"
@@ -304,7 +315,6 @@ under the License.
         <alias entity-alias="pr" name="detailImageUrl" field="detailImageUrl"/>
         <alias entity-alias="pr" name="originalImageUrl" field="originalImageUrl"/>
         <alias entity-alias="pa" name="inventoryId" field="attrValue"/>
-        <alias entity-alias="ba" name="stock" field="balance"/>
 
         <view-link entity-alias="pl" rel-entity-alias="pa" rel-optional="false">
             <key-map field-name="partyId" rel-field-name="partyId"/>
@@ -557,7 +567,7 @@ under the License.
 
     <entity entity-name="PackagePrefix"
             package-name="ofbiz.plugins.ofbiz-spring.sms-task"
-            title="Mobile Carrier Prefix">
+            title="Mobile Carrier Prefix for Package">
         <field name="packageId" type="id"/>
         <field name="dialPlanId" type="id"/>
         <field name="prefix" type="value"/>
@@ -573,6 +583,15 @@ under the License.
             <key-map field-name="dialPlanId" rel-field-name="dialPlanId" />
         </relation>
     </entity>
+
+    <view-entity entity-name="PackagePrefixes"
+                 package-name="org.apache.ofbiz.party"
+                 title="Mobile Carrier Prefixes for Package">
+        <member-entity entity-alias="pp" entity-name="PackagePrefix"/>
+
+        <alias entity-alias="pp" name="packageId" field="packageId" group-by="true"/>
+        <alias entity-alias="pp" name="prefixes" field="long-varchar:group_concat(prefix separator ', ')" function="upper"/>
+    </view-entity>
 
     <view-entity entity-name="DialPlanActive"
                  package-name="org.apache.ofbiz.party"
