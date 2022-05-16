@@ -596,7 +596,7 @@ under the License.
         <member-entity entity-alias="pp" entity-name="PackagePrefix"/>
 
         <alias entity-alias="pp" name="packageId" field="packageId" group-by="true"/>
-        <alias entity-alias="pp" name="prefixes" field="long-varchar:group_concat(prefix separator ', ')" function="upper"/>
+        <alias entity-alias="pp" name="prefixes" field="long-varchar:group_concat(distinct prefix separator ', ')" function="upper"/>
     </view-entity>
 
     <view-entity entity-name="DialPlanActive"
