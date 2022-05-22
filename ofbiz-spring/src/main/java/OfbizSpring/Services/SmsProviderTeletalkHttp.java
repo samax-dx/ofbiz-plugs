@@ -12,8 +12,9 @@ public class SmsProviderTeletalkHttp extends SmsProviderHttp implements ISmsProv
         super(new EndpointTeletalk(UtilMisc.toMap(
                 "BaseUrl", "http://bulkmsg.teletalk.com.bd/api",
                 "UrlSuffix", "/sendSMS",
-                "ClientId", "exceeli::1005340",
-                "ApiKey", "exceeliH#6T9P"
+                "UserId", "exceeli",
+                "AccountCode", "1005340",
+                "Password", "exceeliH#6T9P"
         )));
     }
 

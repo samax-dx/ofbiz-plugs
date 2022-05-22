@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 
 
 public class EndpointTeletalk extends EndpointBase {
-    private final BasicConfigBrilliant config;
+    private final BasicConfigTeletalk config;
 
     public EndpointTeletalk(Map<String, Object> config) {
-        this.config = new BasicConfigBrilliant(config);
+        this.config = new BasicConfigTeletalk(config);
     }
 
     @Override
@@ -30,9 +30,9 @@ public class EndpointTeletalk extends EndpointBase {
     @Override
     public String post(Map<String, Object> payload) throws SmsTaskException {
         Map<String, Object> authPayload = UtilMisc.toMap(
-                "username", config.getClientId().split("::")[0],
-                "password", config.getApiKey(),
-                "acode", config.getClientId().split("::")[1]
+                "username", config.getUserId(),
+                "password", config.getPassword(),
+                "acode", config.getAccountCode()
         );
 
         payload.put("SenderId", "8801552146283");
