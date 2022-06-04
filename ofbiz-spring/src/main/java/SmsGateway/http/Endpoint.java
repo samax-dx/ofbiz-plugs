@@ -76,7 +76,7 @@ public abstract class Endpoint implements IEndpoint {
 
             int status = response.getStatusCode().value();
             if (status >= 400 && status <= 500) {
-                throw new SmsTaskException("Error: ${status}; ${response.getBody()};");
+                throw new SmsTaskException(String.format("Error: %s; %s;", status, response.getBody()));
             }
 
             return response.getBody();
