@@ -4,18 +4,21 @@ import SmsGateway.SmsTaskException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.ofbiz.base.util.UtilMisc;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
-public class EndpointTeletalk extends Endpoint {
-    private final BasicConfigTeletalk config;
+public class EndpointBanglalink extends Endpoint {
+    private final BasicConfigBanglalink config;
 
-    public EndpointTeletalk(Map<String, Object> config) {
-        super("application/json");
-        this.config = new BasicConfigTeletalk(config);
+    public EndpointBanglalink(Map<String, Object> config) {
+        super("application/x-www-form-urlencoded");
+        this.config = new BasicConfigBanglalink(config);
     }
 
     @Override
@@ -30,26 +33,17 @@ public class EndpointTeletalk extends Endpoint {
 
     @Override
     public String post(Map<String, Object> payload) throws SmsTaskException {
-        Map<String, Object> authPayload = UtilMisc.toMap(
-                "username", config.getUserId(),
-                "password", config.getPassword(),
-                "acode", config.getAccountCode()
-        );
-
-        payload.put("SenderId", "8801552146283");
-        Map<String, Object> campaignPayload = UtilMisc.toMap(
-                "message", payload.get("Message"),
-                "masking", payload.get("SenderId"),
-                "msisdn", payload.get("MobileNumbers").toString().split("\\s*,\\s*")
-        );
-
         Map<?, ?> response;
 
         try {
-            response = new ObjectMapper().readValue(super.post(UtilMisc.toMap(
-                    "auth", authPayload,
-                    "smsInfo", campaignPayload
-            )), Map.class); // {"error_code":0,"contact":0,"creditDeducted":2,"currentBalance":"40","description":"Success","smsInfo":[{"smsID":"2022042415503762651d6d0d356","msisdn":"8801717590703"},{"smsID":"2022042415503762651d6d0d986","msisdn":"8801796019535"}]}
+            String responseText = super.post(UtilMisc.toMap(
+                    "userID", config.getUserId(),
+                    "passwd", config.getPassword(),
+                    "sender", "8801969904256",
+                    "msisdn", payload.get("MobileNumbers"),
+                    "message", payload.get("Message")
+            ));
+            response = new XmlMapper().readValue(responseText, Map.class); // {"error_code":0,"contact":0,"creditDeducted":2,"currentBalance":"40","description":"Success","smsInfo":[{"smsID":"2022042415503762651d6d0d356","msisdn":"8801717590703"},{"smsID":"2022042415503762651d6d0d986","msisdn":"8801796019535"}]}
 //            response = new ObjectMapper().readValue("{\"error_code\":0,\"contact\":0,\"creditDeducted\":2,\"currentBalance\":\"40\",\"description\":\"Success\",\"smsInfo\":[{\"smsID\":\"2022042415503762651d6d0d356\",\"msisdn\":\"8801717590703\"},{\"smsID\":\"2022042415503762651d6d0d986\",\"msisdn\":\"8801796019535\"}]}", Map.class);
         } catch (JsonProcessingException e) {
             Map<String, Object> report = new HashMap<>();

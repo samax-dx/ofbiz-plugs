@@ -29,4 +29,5 @@ dependencies {
     pluginLibsCompile "org.springframework:spring-aspects:${springVersion}"
     pluginLibsCompile "org.springframework:spring-aop:${springVersion}"
     pluginLibsCompile "org.springframework:spring-orm:${springVersion}"
+    pluginLibsCompile "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.3"
 }

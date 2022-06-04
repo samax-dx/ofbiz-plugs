@@ -5,10 +5,11 @@ import SmsGateway.SmsTaskException;
 import java.util.Map;
 
 
-public class EndpointBrilliant extends EndpointBase {
+public class EndpointBrilliant extends Endpoint {
     private final BasicConfigBrilliant config;
 
     public EndpointBrilliant(Map<String, Object> config) {
+        super("application/json");
         this.config = new BasicConfigBrilliant(config);
     }
 

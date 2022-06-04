@@ -493,7 +493,7 @@ Map<String, Object> spRunCampaign() {
 				return acc
 			},
 			{ acc_o, acc_n ->
-				acc_n.handledTasks.addAll(acc_o.handledTasks)
+				acc_n.handledTasks.addAll(0, acc_o.handledTasks)
 				acc_n.taskCount += acc_o.taskCount
 				acc_n.success += acc_o.success
 				return acc_n
