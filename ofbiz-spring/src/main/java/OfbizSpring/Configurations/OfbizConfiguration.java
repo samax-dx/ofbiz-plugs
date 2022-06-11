@@ -3,6 +3,8 @@ package OfbizSpring.Configurations;
 import OfbizSpring.Aspects.AuthorizationAspect;
 import OfbizSpring.Aspects.OfbizServiceAspect;
 import OfbizSpring.Interceptors.AuthorizationInterceptor;
+import TeleCampaign.CampaignTaskScheduler;
+import org.apache.ofbiz.base.start.Start;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.DelegatorFactory;
 import org.apache.ofbiz.service.LocalDispatcher;
@@ -15,6 +17,10 @@ import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import javax.annotation.PostConstruct;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 ///TODO: extend dispatcher to authorize all runSync
@@ -53,5 +59,23 @@ public class OfbizConfiguration implements WebMvcConfigurer {
     @Bean
     public OfbizServiceAspect ofbizServiceAspect() {
         return new OfbizServiceAspect(delegator(), dispatcher());
+    }
+
+    @PostConstruct
+    void startCampaignTaskScheduler() {
+        Timer timer = new Timer();
+        Delegator delegator = delegator();
+        LocalDispatcher dispatcher = dispatcher();
+
+        timer.schedule(new TimerTask() {
+            private final Start ofbizInstance = Start.getInstance();
+            @Override
+            public void run() {
+                if (ofbizInstance.getCurrentState() == Start.ServerState.RUNNING) {
+                    CampaignTaskScheduler scheduler = new CampaignTaskScheduler(delegator, dispatcher);
+                    scheduler.scheduleIncompleteTasks();
+                }
+            }
+        }, 0, 60000);
     }
 }

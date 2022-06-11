@@ -15,10 +15,12 @@ import java.util.stream.Collectors;
 
 public class EndpointBanglalink extends Endpoint {
     private final BasicConfigBanglalink config;
+    private final long batchSize;
 
     public EndpointBanglalink(Map<String, Object> config) {
         super("application/x-www-form-urlencoded");
         this.config = new BasicConfigBanglalink(config);
+        batchSize = 10000;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class EndpointBanglalink extends Endpoint {
                     "userID", config.getUserId(),
                     "passwd", config.getPassword(),
                     "sender", "8801969904256",
-                    "msisdn", payload.get("MobileNumbers"),
+                    "msisdn", ((List<String>) payload.get("MobileNumbers")).stream().limit(this.batchSize).collect(Collectors.toList()),
                     "message", payload.get("Message")
             ));
             response = new XmlMapper().readValue(responseText, Map.class); // {"error_code":0,"contact":0,"creditDeducted":2,"currentBalance":"40","description":"Success","smsInfo":[{"smsID":"2022042415503762651d6d0d356","msisdn":"8801717590703"},{"smsID":"2022042415503762651d6d0d986","msisdn":"8801796019535"}]}

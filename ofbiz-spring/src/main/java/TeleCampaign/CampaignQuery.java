@@ -4,9 +4,14 @@ import org.apache.ofbiz.base.util.UtilMisc;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.GenericEntityException;
 import org.apache.ofbiz.entity.GenericValue;
+import org.apache.ofbiz.entity.condition.EntityCondition;
+import org.apache.ofbiz.entity.condition.EntityOperator;
 import org.apache.ofbiz.entity.transaction.TransactionUtil;
+import org.apache.ofbiz.entity.util.EntityFindOptions;
 import org.apache.ofbiz.entity.util.EntityQuery;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -66,6 +71,22 @@ public class CampaignQuery {
                 TransactionUtil.commit();
             }
             throw ex;
+        }
+    }
+
+    public List<GenericValue> getIncompleteCampaigns() {
+        try {
+            return delegator.findList(
+                    "CampaignReport",
+                    EntityCondition.makeCondition("pending", EntityOperator.GREATER_THAN,0L),
+                    null,
+                    Arrays.asList("pending"),
+                    new EntityFindOptions(),
+                    true
+            );
+        } catch (GenericEntityException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 }

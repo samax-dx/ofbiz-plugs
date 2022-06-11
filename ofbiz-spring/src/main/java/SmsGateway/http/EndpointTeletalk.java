@@ -12,10 +12,12 @@ import java.util.stream.Collectors;
 
 public class EndpointTeletalk extends Endpoint {
     private final BasicConfigTeletalk config;
+    private final int batchSize;
 
     public EndpointTeletalk(Map<String, Object> config) {
         super("application/json");
         this.config = new BasicConfigTeletalk(config);
+        batchSize = 10000;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class EndpointTeletalk extends Endpoint {
         Map<String, Object> campaignPayload = UtilMisc.toMap(
                 "message", payload.get("Message"),
                 "masking", payload.get("SenderId"),
-                "msisdn", payload.get("MobileNumbers").toString().split("\\s*,\\s*")
+                "msisdn", ((List<String>) payload.get("MobileNumbers")).stream().limit(this.batchSize).collect(Collectors.toList())
         );
 
         Map<?, ?> response;

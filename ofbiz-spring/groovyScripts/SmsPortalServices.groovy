@@ -353,14 +353,12 @@ Map<String, Object> spAddPartyProductBalanceForOrder() {
 }
 
 static Map<String, Object> runCampaign(ISmsProvider smsProvider, Map<String, Object> campaign, List<String> campaignTasks) {
-	String taskDoc = campaignTasks.join(",");
-
 	String reportDoc
 	try {
 		reportDoc = smsProvider.sendSms(UtilMisc.toMap(
 				"CampaignName", campaign.campaignName,
 				"SenderId", campaign.senderId,
-				"MobileNumbers", taskDoc,
+				"MobileNumbers", campaignTasks,
 				"Message", campaign.message
 		))
 	} catch (Exception e) {
@@ -370,9 +368,9 @@ static Map<String, Object> runCampaign(ISmsProvider smsProvider, Map<String, Obj
 	return UtilMisc.toMap((Map<?, ?>) new ObjectMapper().readValue(reportDoc, Map.class))
 }
 
-boolean hasCampaignBalance(String partyId, int campaignTasks, String message, String campaignPackageId) {
-	int requestSmsQuantity = campaignTasks * SmsUtil.smsCount(message)
-	BigDecimal partySmsBalance  = BillingAccountWorker.getBillingAccountAvailableBalance(getPartyServiceBillingAccount(partyId, campaignPackageId)) * -1
+boolean hasCampaignBalance(String billingAccountId, int taskItemCount, String message) {
+	int requestSmsQuantity = taskItemCount * SmsUtil.smsCount(message)
+	BigDecimal partySmsBalance  = BillingAccountWorker.getBillingAccountAvailableBalance(delegator, billingAccountId) * -1
 	return partySmsBalance >= requestSmsQuantity
 }
 
@@ -394,8 +392,7 @@ Map<String, Object> spRunCampaign() {
 
 	CampaignTaskProvider campaignTaskProvider = CampaignTaskProvider.create(
 			(String) campaign.campaignId,
-			((List<Object>) parameters.campaignTasks)
-					.stream()
+			((List<Object>) parameters.campaignTasks).stream()
 					.map({ task -> task instanceof Map ? task.get("phoneNumber") : (String) task })
 					.collect(Collectors.joining(",")),
 			from("DialPlanActivePrioritizedView").queryList(),
@@ -410,48 +407,50 @@ Map<String, Object> spRunCampaign() {
 			},
 			{ acc, routeTask ->
 				String[] pkg_route = routeTask.getKey().split(":")
+				String taskPackage = pkg_route[0]
+				String taskRouteId = pkg_route[1]
 
-				String partyId = (String) parameters.partyId
-				String campaignPackage = pkg_route[0]
-				List<String> campaignTasks = routeTask.getValue()
+				List<String> taskItems = routeTask.getValue()
 
-				acc.taskCount += campaignTasks.size()
+				acc.taskCount += taskItems.size()
 
-				if (campaignPackage == "") {
-					addAllFailedTasks(campaignTaskProvider, campaignTasks, "package_not_found", acc.handledTasks)
+				if (taskPackage == "") {
+					addAllFailedTasks(campaignTaskProvider, taskItems, "package_not_found", (List<GenericValue>) acc.handledTasks)
 					return acc
 				}
 
-				if (campaignTasks.size() == 0) {
+				if (taskItems.size() == 0) {
 					return acc
 				}
 
-				if (!hasCampaignBalance(partyId, campaignTasks.size(), (String) campaign.message, campaignPackage)) {
-					addAllFailedTasks(campaignTaskProvider, campaignTasks, "insufficient_balance", acc.handledTasks)
+				String taskBillingAccountId = getPartyServiceBillingAccount((String) parameters.partyId, taskPackage).billingAccountId
+
+				if (!hasCampaignBalance(taskBillingAccountId, taskItems.size(), (String) campaign.message)) {
+					addAllFailedTasks(campaignTaskProvider, taskItems, "insufficient_balance", (List<GenericValue>) acc.handledTasks)
 					return acc
 				}
 
-				ISmsProvider smsProvider = ((Function<String, ISmsProvider>) parameters.SmsProvider).apply(pkg_route[1])
+				ISmsProvider smsProvider = ((Function<String, ISmsProvider>) parameters.SmsProvider).apply(taskRouteId)
 
 				if (smsProvider == null) {
-					addAllFailedTasks(campaignTaskProvider, campaignTasks, "route_not_found", acc.handledTasks)
+					addAllFailedTasks(campaignTaskProvider, taskItems, "route_not_found", (List<GenericValue>) acc.handledTasks)
 					return acc
 				}
 
-				Map<String, Object> report = runCampaign(smsProvider, campaign, campaignTasks)
-//				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", campaignTasks.stream().map({
-//					t -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", t)
-//				}).collect(Collectors.toList()))
+//				Map<String, Object> report = runCampaign(smsProvider, campaign, taskItems)
+				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", taskItems.stream().map({
+					taskItem -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", taskItem)
+				}).collect(Collectors.toList()))
 
 				if (Integer.parseInt(report.get("ErrorCode").toString()) != 0) {
-					addAllFailedTasks(campaignTaskProvider, campaignTasks, (String) report.get("ErrorCode"), acc.handledTasks)
+					addAllFailedTasks(campaignTaskProvider, taskItems, (String) report.get("ErrorCode"), (List<GenericValue>) acc.handledTasks)
 					return acc
 				}
 
 				List<Map<String, Object>> reportTasks = (List<Map<String, Object>>) report.get("Data")
 
 				if (reportTasks.size() == 0) {
-					addAllFailedTasks(campaignTaskProvider, campaignTasks, "no_response", acc.handledTasks)
+					addAllFailedTasks(campaignTaskProvider, taskItems, "no_response", (List<GenericValue>) acc.handledTasks)
 					return acc
 				}
 
@@ -484,10 +483,10 @@ Map<String, Object> spRunCampaign() {
 				}
 
 				addPartyBalance(UtilMisc.toMap(
-						"partyId", partyId,
+						"partyId", parameters.partyId,
 						"amount", String.valueOf(acc.success * -1),
-						"billingAccountId", getPartyServiceBillingAccount(partyId, campaignPackage).billingAccountId,
-						"balanceType", campaignPackage
+						"billingAccountId", taskBillingAccountId,
+						"balanceType", taskPackage
 				))
 
 				return acc
