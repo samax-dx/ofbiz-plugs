@@ -172,10 +172,10 @@ public class HttpUtil {
             }
 
             Map<String, JsonNode> flattenForm(JsonNode data) {
-                return flatten(data, "", new HashMap<String, Object>() {{
-                    put("ignoreArrayItems", true);
-                    put("pivot", ".");
-                }});
+                return flatten(data, "", Stream.of(
+                        new AbstractMap.SimpleEntry<>("ignoreArrayItems", true),
+                        new AbstractMap.SimpleEntry<>("pivot", ".")
+                ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
             }
 
             String formToUrl(JsonNode data) {

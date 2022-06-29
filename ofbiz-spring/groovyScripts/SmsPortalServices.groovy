@@ -437,10 +437,10 @@ Map<String, Object> spRunCampaign() {
 					return acc
 				}
 
-//				Map<String, Object> report = runCampaign(smsProvider, campaign, taskItems)
-				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", taskItems.stream().map({
-					taskItem -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", taskItem)
-				}).collect(Collectors.toList()))
+				Map<String, Object> report = runCampaign(smsProvider, campaign, taskItems)
+//				Map<String, Object> report = UtilMisc.toMap("ErrorCode", 0, "Data", taskItems.stream().map({
+//					taskItem -> UtilMisc.toMap("MessageErrorCode", 0, "MobileNumber", taskItem)
+//				}).collect(Collectors.toList()))
 
 				if (Integer.parseInt(report.get("ErrorCode").toString()) != 0) {
 					addAllFailedTasks(campaignTaskProvider, taskItems, (String) report.get("ErrorCode"), (List<GenericValue>) acc.handledTasks)
@@ -505,7 +505,8 @@ Map<String, Object> spRunCampaign() {
 	svcOut.put("report", UtilMisc.toMap(
 			"taskCount", report.taskCount,
 			"success", report.success,
-			"failure", report.taskCount - report.success
+			"failure", report.taskCount - report.success,
+			"lastTaskStatus", report.handledTasks.size() > 0 ? report.handledTasks.last().statusText : ""
 	))
 	return svcOut
 }

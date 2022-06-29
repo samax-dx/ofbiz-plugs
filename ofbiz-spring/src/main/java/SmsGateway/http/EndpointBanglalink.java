@@ -7,9 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.ofbiz.base.util.UtilMisc;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -20,7 +18,7 @@ public class EndpointBanglalink extends Endpoint {
     public EndpointBanglalink(Map<String, Object> config) {
         super("application/x-www-form-urlencoded");
         this.config = new BasicConfigBanglalink(config);
-        batchSize = 10000;
+        batchSize = 1;
     }
 
     @Override
@@ -38,16 +36,23 @@ public class EndpointBanglalink extends Endpoint {
         Map<?, ?> response;
 
         try {
-            String responseText = super.post(UtilMisc.toMap(
+            List<String> tasks = (List<String>) payload.get("MobileNumbers");
+
+            String responseText = /*super.post(UtilMisc.toMap(
                     "userID", config.getUserId(),
                     "passwd", config.getPassword(),
                     "sender", "8801969904256",
-                    "msisdn", ((List<String>) payload.get("MobileNumbers")).stream().limit(this.batchSize).collect(Collectors.toList()),
+                    "msisdn", tasks.stream().limit(this.batchSize).collect(Collectors.toList()),
                     "message", payload.get("Message")
-            ));
-            response = new XmlMapper().readValue(responseText, Map.class); // {"error_code":0,"contact":0,"creditDeducted":2,"currentBalance":"40","description":"Success","smsInfo":[{"smsID":"2022042415503762651d6d0d356","msisdn":"8801717590703"},{"smsID":"2022042415503762651d6d0d986","msisdn":"8801796019535"}]}
-//            response = new ObjectMapper().readValue("{\"error_code\":0,\"contact\":0,\"creditDeducted\":2,\"currentBalance\":\"40\",\"description\":\"Success\",\"smsInfo\":[{\"smsID\":\"2022042415503762651d6d0d356\",\"msisdn\":\"8801717590703\"},{\"smsID\":\"2022042415503762651d6d0d986\",\"msisdn\":\"8801796019535\"}]}", Map.class);
-        } catch (JsonProcessingException e) {
+            ));*/"success: 1 and failure: 0";
+            boolean isSuccess = Integer.parseInt(responseText.split("and")[0].split(":")[1].trim()) > 0;
+
+            response = UtilMisc.toMap(
+                    "error_code", isSuccess ? 0 : -1,
+                    "smsInfo", tasks
+            );
+//            response = new XmlMapper().readValue(responseText, Map.class);
+        } catch (Exception e/*JsonProcessingException e*/) {
             Map<String, Object> report = new HashMap<>();
             report.put("ErrorCode", -1);
             report.put("ErrorDescription", "acknowledging");
@@ -55,12 +60,8 @@ public class EndpointBanglalink extends Endpoint {
         }
 
         if (response.get("error_code").toString().equals("0")) {
-            List<Object> tasks = ((List<?>) response.get("smsInfo"))
-                    .stream()
-                    .map(v -> {
-                        Map<String, Object> task = UtilMisc.toMap(v);
-                        return UtilMisc.toMap("MobileNumber", task.get("msisdn"), "MessageErrorCode", "0");
-                    })
+            List<Object> tasks = ((List<String>) response.get("smsInfo")).stream()
+                    .map(task -> UtilMisc.toMap("MobileNumber", task, "MessageErrorCode", "0"))
                     .collect(Collectors.toList());
 
             Map<String, Object> report = new HashMap<>();

@@ -73,7 +73,7 @@ public class OfbizConfiguration implements WebMvcConfigurer {
             public void run() {
                 if (ofbizInstance.getCurrentState() == Start.ServerState.RUNNING) {
                     CampaignTaskScheduler scheduler = new CampaignTaskScheduler(delegator, dispatcher);
-                    scheduler.scheduleIncompleteTasks();
+//                    scheduler.scheduleIncompleteTasks();
                 }
             }
         }, 0, 60000);

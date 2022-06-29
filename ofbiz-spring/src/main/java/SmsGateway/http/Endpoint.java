@@ -7,15 +7,17 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 public abstract class Endpoint implements IEndpoint {
@@ -66,10 +68,10 @@ public abstract class Endpoint implements IEndpoint {
                     HttpMethod.POST,
                     new HttpEntity<>(
                             requestPayload(payload, messageFormat),
-                            new HttpHeaders() {{
-                                add("Content-Type", messageFormat);
-                                add("Accept", messageFormat);
-                            }}
+                            new LinkedMultiValueMap<>(Stream.of(
+                                    new AbstractMap.SimpleEntry<>("Content-Type", Arrays.asList(messageFormat)),
+                                    new AbstractMap.SimpleEntry<>("Accept", Arrays.asList(messageFormat))
+                            ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
                     ),
                     String.class
             );
@@ -89,6 +91,33 @@ public abstract class Endpoint implements IEndpoint {
 
     @Override
     public String get(Map<String, Object> payload) throws SmsTaskException {
-        throw new UnsupportedOperationException();
+        try {
+            ResponseEntity<String> response =  new RestTemplate().exchange(
+                    UriComponentsBuilder.fromHttpUrl(baseUrl() + urlSuffix())
+                            .queryParams(new LinkedMultiValueMap<>(
+                                    payload.entrySet().stream().collect(
+                                            Collectors.toMap(Map.Entry::getKey, en -> Arrays.asList(en.getValue().toString()))
+                                    )
+                            ))
+                            .build().encode().toUri(),
+                    HttpMethod.GET,
+                    new HttpEntity<>(
+                            new LinkedMultiValueMap<>(Stream.of(
+                                    new AbstractMap.SimpleEntry<>("Content-Type", Arrays.asList(messageFormat)),
+                                    new AbstractMap.SimpleEntry<>("Accept", Arrays.asList(messageFormat))
+                            ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+                    ),
+                    String.class
+            );
+
+            int status = response.getStatusCode().value();
+            if (status >= 400 && status <= 500) {
+                throw new SmsTaskException(String.format("Error: %s; %s;", status, response.getBody()));
+            }
+
+            return response.getBody();
+        } catch (RestClientException e) {
+            throw new SmsTaskException(e.getMessage());
+        }
     }
 }
