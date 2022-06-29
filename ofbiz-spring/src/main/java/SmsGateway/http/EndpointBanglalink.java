@@ -1,10 +1,8 @@
 package SmsGateway.http;
 
 import SmsGateway.SmsTaskException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.ofbiz.base.util.UtilMisc;
 
 import java.util.*;
