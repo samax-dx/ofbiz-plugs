@@ -74,7 +74,7 @@ public class EndpointGrameenphone extends Endpoint {
             }
 
             Map<String, Object> report = new HashMap<>();
-            report.put("ErrorCode", "0");
+            report.put("ErrorCode", 0);
             report.put("Data", taskReports);
             return new ObjectMapper().convertValue(report, JsonNode.class).toString();
         } catch (JsonProcessingException e) {
