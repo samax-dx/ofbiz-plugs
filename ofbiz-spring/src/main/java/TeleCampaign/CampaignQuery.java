@@ -35,7 +35,6 @@ public class CampaignQuery {
 
         GenericValue campaign = delegator.makeValue("Campaign", campaignDataCopy);
         campaign.put("campaignId", delegator.getNextSeqId(campaign.getEntityName()));
-        campaign.put("runCount", 0L);
 
         if (campaign.getOrDefault("campaignName", "").equals("")) {
             campaign.put("campaignName", String.valueOf(System.currentTimeMillis()));
@@ -78,9 +77,37 @@ public class CampaignQuery {
         try {
             return delegator.findList(
                     "CampaignReport",
-                    EntityCondition.makeCondition("pending", EntityOperator.GREATER_THAN,0L),
+//                    EntityCondition.makeCondition(
+//                            EntityCondition.makeCondition("firstRun", EntityOperator.NOT_EQUAL,null),
+//                            EntityOperator.AND,
+//                            EntityCondition.makeCondition("pending", EntityOperator.GREATER_THAN,0L)
+//                    ),
+                    EntityCondition.makeCondition(
+                            EntityCondition.makeCondition("pending", EntityOperator.GREATER_THAN,0L),
+                            EntityCondition.makeCondition("inActiveHours", "1")
+                    ),
                     null,
                     Arrays.asList("pending"),
+                    new EntityFindOptions(),
+                    true
+            );
+        } catch (GenericEntityException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+    }
+
+    public List<GenericValue> getIncompleteTasks(GenericValue campaign) {
+        try {
+            return delegator.findList(
+                    "CampaignTask",
+                    EntityCondition.makeCondition(
+                            EntityCondition.makeCondition("campaignId", campaign.get("campaignId").toString()),
+                            EntityOperator.AND,
+                            EntityCondition.makeCondition("status", "0")
+                    ),
+                    null,
+                    Collections.singletonList("campaignId"),
                     new EntityFindOptions(),
                     true
             );

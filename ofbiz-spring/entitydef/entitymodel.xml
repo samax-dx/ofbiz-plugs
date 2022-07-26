@@ -351,8 +351,10 @@ under the License.
         <field name="message" type="description"/>
         <field name="isUnicode" type="indicator"/>
         <field name="isFlash" type="indicator"/>
-        <field name="runCount" type="numeric"/>
+<!--        <field name="runCount" type="numeric"/>-->
         <field name="partyId" type="id" not-null="true"/>
+        <field name="startAt" type="date-time"/>
+        <field name="endAt" type="date-time"/>
 
         <prim-key field="campaignId"/>
 
@@ -442,7 +444,7 @@ under the License.
         <alias entity-alias="ca" name="campaignName" field="campaignName"/>
         <alias entity-alias="ca" name="createdOn" field="createdStamp"/>
         <alias entity-alias="ca" name="updatedOn" field="lastUpdatedStamp"/>
-        <alias entity-alias="ca" name="runCount" field="runCount"/>
+<!--        <alias entity-alias="ca" name="runCount" field="runCount"/>-->
         <alias entity-alias="ca" name="senderId" field="senderId"/>
         <alias entity-alias="ca" name="message" field="message"/>
         <alias entity-alias="ca" name="isUnicode" field="isUnicode"/>
@@ -478,6 +480,8 @@ under the License.
         <member-entity entity-alias="cr" entity-name="CampaignReportAll"/>
 
         <alias-all entity-alias="cr"/>
+<!--        <alias entity-alias="ca" name="firstRun" field="date-time:IF(CREATED_STAMP=LAST_UPDATED_STAMP, null, CREATED_STAMP)"/>-->
+        <alias entity-alias="ca" name="inActiveHours" field="indicator:IF(NOW() BETWEEN START_AT and END_AT, true, false)"/>
 
         <view-link entity-alias="ca" rel-entity-alias="cr" rel-optional="false">
             <key-map field-name="campaignId" rel-field-name="campaignId"/>

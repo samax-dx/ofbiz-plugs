@@ -500,6 +500,7 @@ Map<String, Object> spRunCampaign() {
 	)
 
 	delegator.storeAll(campaign.campaignId == null ? new ArrayList<GenericValue>() : report.handledTasks)
+	delegator.makeValidValue("Campaign", campaign).store()
 
 	Map<String, Object> svcOut = ServiceUtil.returnSuccess()
 	svcOut.put("report", UtilMisc.toMap(

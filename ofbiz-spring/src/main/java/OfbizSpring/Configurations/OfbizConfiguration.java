@@ -3,10 +3,11 @@ package OfbizSpring.Configurations;
 import OfbizSpring.Aspects.AuthorizationAspect;
 import OfbizSpring.Aspects.OfbizServiceAspect;
 import OfbizSpring.Interceptors.AuthorizationInterceptor;
-import TeleCampaign.CampaignTaskScheduler;
+import TeleCampaign.CampaignRunner;
 import org.apache.ofbiz.base.start.Start;
 import org.apache.ofbiz.entity.Delegator;
 import org.apache.ofbiz.entity.DelegatorFactory;
+import org.apache.ofbiz.entity.GenericValue;
 import org.apache.ofbiz.service.LocalDispatcher;
 import org.apache.ofbiz.service.ServiceContainer;
 import org.springframework.context.annotation.Bean;
@@ -19,8 +20,8 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.PostConstruct;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Map;
+import java.util.concurrent.locks.LockSupport;
 
 
 ///TODO: extend dispatcher to authorize all runSync
@@ -62,20 +63,16 @@ public class OfbizConfiguration implements WebMvcConfigurer {
     }
 
     @PostConstruct
-    void startCampaignTaskScheduler() {
-        Timer timer = new Timer();
-        Delegator delegator = delegator();
-        LocalDispatcher dispatcher = dispatcher();
-
-        timer.schedule(new TimerTask() {
-            private final Start ofbizInstance = Start.getInstance();
-            @Override
-            public void run() {
-                if (ofbizInstance.getCurrentState() == Start.ServerState.RUNNING) {
-                    CampaignTaskScheduler scheduler = new CampaignTaskScheduler(delegator, dispatcher);
-//                    scheduler.scheduleIncompleteTasks();
+    void startCampaignRunner() {
+        new Thread(() -> {
+            CampaignRunner campaignRunner = new CampaignRunner(delegator(), dispatcher());
+            while (true) {
+                if (Start.getInstance().getCurrentState() == Start.ServerState.RUNNING) {
+                    Map<String, GenericValue> campaigns = campaignRunner.runCampaigns();
+                    System.out.printf("%s### Total Processed Campaigns: %d ###%s", System.lineSeparator(), campaigns.size(), System.lineSeparator());
+                    LockSupport.parkNanos(5000L * 1000000); //~ Thread.sleep(5000);
                 }
             }
-        }, 0, 60000);
+        }).start();
     }
 }
